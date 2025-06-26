@@ -45,22 +45,6 @@ def chunk_text(text: str) -> list[str]:
 app = FastAPI()
 client = QdrantClient(url=QDRANT_URL)
 
-
-def chunk_text(text: str) -> list[str]:
-    """
-    Splits text into overlapping chunks of words.
-    """
-    words = text.split()
-    chunks = []
-    start = 0
-    total = len(words)
-    while start < total:
-        end = min(start + TEXT_CHUNK_SIZE, total)
-        chunks.append(" ".join(words[start:end]))
-        start = end - TEXT_CHUNK_OVERLAP
-    return chunks
-
-
 def parse_pdf(contents: bytes) -> str:
     """Parse PDF, fallback to OCR if no text found"""
     reader = PdfReader(io.BytesIO(contents))
