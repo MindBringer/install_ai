@@ -179,10 +179,9 @@ services:
 
   qdrant:
     image: qdrant/qdrant:latest
+    container_name: qdrant
     ports:
       - "6333:6333"
-    volumes:
-      - qdrant_storage:/qdrant/storage
     restart: unless-stopped
 
   n8n:
@@ -218,14 +217,25 @@ services:
     build:
       context: ./RAG
       dockerfile: Dockerfile.upload
+    container_name: rag-upload
     env_file:
       - .env
     ports:
-      - "8001:8000"   # Host-Port 8001 → Container-Port 8000
-    volumes:
-      - ./data/uploads:/uploads
+      - "8001:8000"              # bleibt so: Host 8001 → Container 8000
+    environment:
+      - EMBEDDING_URL=http://embedding:8000/embed
     depends_on:
+      - embedding
       - qdrant
+    restart: unless-stopped
+
+  embedding:
+    build:
+      context: ./embed-service
+      dockerfile: Dockerfile.embed
+    container_name: embedding
+    ports:
+      - "8002:8000"
     restart: unless-stopped
 
   caddy:
@@ -354,6 +364,9 @@ if command -v ufw &>/dev/null && sudo ufw status | grep -q inactive; then
   sudo ufw allow 22/tcp
   sudo ufw allow 80/tcp
   sudo ufw allow 5678/tcp
+  sudo ufw allow 8080/tcp
+  sudo ufw allow 6333/tcp
+  sudo ufw allow 8001/tcp
   sudo ufw allow 9000/tcp
   sudo ufw allow 11434/tcp
   sudo ufw --force enable
@@ -362,6 +375,9 @@ elif command -v ufw &>/dev/null; then
   sudo ufw allow 22/tcp
   sudo ufw allow 80/tcp
   sudo ufw allow 5678/tcp
+  sudo ufw allow 8080/tcp
+  sudo ufw allow 6333/tcp
+  sudo ufw allow 8001/tcp
   sudo ufw allow 9000/tcp
   sudo ufw allow 11434/tcp
 fi
@@ -370,7 +386,7 @@ fi
 echo "[8/8] ✅ Prüfe Verfügbarkeit der Dienste im lokalen Netzwerk..."
 
 SERVICES=(
-  "WebUI:http://open-local:8080"
+  "WebUI:http://open-webui:8080"
   "n8n:http://n8n:5678"
   "Whisper:http://whisper:9000/docs"
   "Ollama:http://ollama:11434"

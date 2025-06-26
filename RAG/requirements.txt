@@ -6,3 +6,4 @@ python-docx
 html2text
 unstructured
 qdrant-client
+tiktoken>=0.4.0

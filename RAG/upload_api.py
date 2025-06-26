@@ -12,6 +12,7 @@ import pytesseract
 import pypandoc
 import pandas as pd
 from qdrant_client import QdrantClient
+import tiktoken
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,9 +23,24 @@ QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 EMBEDDING_ENDPOINT = os.getenv("EMBEDDING_URL")
 EMBEDDING_API_KEY = os.getenv("EMBEDDING_API_KEY")
 
-# Constants for chunking
-TEXT_CHUNK_SIZE = 500  # number of words per chunk
-TEXT_CHUNK_OVERLAP = 50  # number of words to overlap between chunks
+ENCODING = tiktoken.get_encoding("gpt2")
+MAX_TOKENS = 500
+OVERLAP    = 50
+
+def chunk_text(text: str) -> list[str]:
+    """
+    Splits text into overlapping chunks of tokens (not words),
+    so du nie die Kontext-Limit von Embedding-Modellen reißt.
+    """
+    token_ids = ENCODING.encode(text)
+    chunks = []
+    i = 0
+    total = len(token_ids)
+    while i < total:
+        window = token_ids[i : i + MAX_TOKENS]
+        chunks.append(ENCODING.decode(window))
+        i += MAX_TOKENS - OVERLAP
+    return chunks
 
 app = FastAPI()
 client = QdrantClient(url=QDRANT_URL)
