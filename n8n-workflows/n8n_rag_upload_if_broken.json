@@ -1,0 +1,651 @@
+{
+  "name": "RAG Upload Multi-Format (komplett, MIME fix)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook Upload",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "setAllData": false,
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "name": "Move Binary",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "mime",
+              "value": "={{$binary.data.mimeType}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Extract MIME",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "\nconst map = {\n  'application/pdf': 'pdf',\n  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',\n  'text/html': 'html',\n  'text/markdown': 'md',\n  'text/plain': 'txt',\n  'application/rtf': 'rtf',\n  'image/png': 'ocr',\n  'image/jpeg': 'ocr',\n  'image/jpg': 'ocr'\n};\nreturn [{ json: { format: map[$json.mime] || 'unknown', mime: $json.mime } }];\n"
+      },
+      "name": "Detect Format",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/file && pdftotext /tmp/file -"
+      },
+      "name": "Parse PDF",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/file && pandoc /tmp/file -t plain"
+      },
+      "name": "Parse DOCX/MD/HTML",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/file && unrtf --text /tmp/file"
+      },
+      "name": "Parse RTF",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/image.png && tesseract /tmp/image.png stdout"
+      },
+      "name": "Parse OCR Image",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d"
+      },
+      "name": "Parse TXT",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const txt = $json.text || '';\nconst size = 400, overlap = 50;\nlet out = [];\nfor (let i = 0; i < txt.length; i += (size - overlap)) {\n  out.push({ chunk: txt.slice(i, i + size) });\n}\nreturn out.map(c => ({ json: c }));"
+      },
+      "name": "Chunk Text",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://ollama:11434/api/generate-embedding",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{ \"text\": \"={{$json.chunk}}\" }"
+      },
+      "name": "Embedding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://qdrant:6333/collections/docs/points?wait=true",
+        "method": "PUT",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"points\": [\n    {\n      \"id\": \"={{$json.chunk.substring(0,30)}}\",\n      \"vector\": {{ $json.body.embedding }},\n      \"payload\": { \"text\": \"={{$json.chunk}}\" }\n    }\n  ]\n}"
+      },
+      "name": "Insert Qdrant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/image.png && tesseract /tmp/image.png stdout"
+      },
+      "name": "Parse PNG",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash",
+        "arguments": "-c",
+        "input": "echo -n \"{{ $binary.data.data }}\" | base64 -d > /tmp/image.jpg && tesseract /tmp/image.jpg stdout"
+      },
+      "name": "Parse JPEG",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        750
+      ]
+    },
+    {
+      "name": "If OCR?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "jpeg"
+            },
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "jpg"
+            },
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "png"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "pdf"
+            }
+          ]
+        }
+      },
+      "name": "If PDF?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "docx"
+            }
+          ]
+        }
+      },
+      "name": "If DOCX?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "html"
+            }
+          ]
+        }
+      },
+      "name": "If HTML?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "md"
+            }
+          ]
+        }
+      },
+      "name": "If MD?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "rtf"
+            }
+          ]
+        }
+      },
+      "name": "If RTF?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        1050
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.format}}",
+              "operation": "equal",
+              "value2": "txt"
+            }
+          ]
+        }
+      },
+      "name": "If TXT?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        1200
+      ]
+    },
+    {
+      "name": "Format nicht unterst\u00fctzt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        900
+      ],
+      "parameters": {
+        "responseData": "firstEntryJson",
+        "responseCode": 400,
+        "responseMode": "onReceived",
+        "options": {},
+        "responsePropertyName": "",
+        "values": {
+          "string": [
+            {
+              "name": "Fehler",
+              "value": "\u274c Dieses Dateiformat wird nicht unterst\u00fctzt."
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Upload": {
+      "main": [
+        [
+          {
+            "node": "Move Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary": {
+      "main": [
+        [
+          {
+            "node": "Extract MIME",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract MIME": {
+      "main": [
+        [
+          {
+            "node": "Detect Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Format": {
+      "main": [
+        [
+          {
+            "node": "If OCR?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse PDF": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse DOCX/MD/HTML": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse RTF": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse TXT": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse OCR Image": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk Text": {
+      "main": [
+        [
+          {
+            "node": "Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embedding": {
+      "main": [
+        [
+          {
+            "node": "Insert Qdrant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse PNG": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JPEG": {
+      "main": [
+        [
+          {
+            "node": "Chunk Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If OCR?": {
+      "main": [
+        [
+          {
+            "node": "Parse PNG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If PDF?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format nicht unterst\u00fctzt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If PDF?": {
+      "main": [
+        [
+          {
+            "node": "Parse PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If DOCX?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If DOCX?": {
+      "main": [
+        [
+          {
+            "node": "Parse DOCX/MD/HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If HTML?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If HTML?": {
+      "main": [
+        [
+          {
+            "node": "Parse DOCX/MD/HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If MD?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If MD?": {
+      "main": [
+        [
+          {
+            "node": "Parse DOCX/MD/HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If RTF?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If RTF?": {
+      "main": [
+        [
+          {
+            "node": "Parse RTF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If TXT?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If TXT?": {
+      "main": [
+        [
+          {
+            "node": "Parse TXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

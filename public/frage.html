@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>❓ Frage stellen</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+    #antwort { white-space: pre-wrap; margin-top: 1rem; background: #f0f0f0; padding: 1rem; border-radius: 5px; }
+    #status { font-size: 0.9rem; color: #777; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h2>🔍 Frage an deine Dokumente</h2>
+  <form id="frageForm">
+    <input type="text" name="question" placeholder="Stelle eine Frage..." size="50" required />
+    <button type="submit">Fragen</button>
+  </form>
+  <div id="status"></div>
+  <div id="antwort"></div>
+
+<script>
+document.getElementById('frageForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const frage = e.target.question.value.trim();
+  const status = document.getElementById('status');
+  const antwort = document.getElementById('antwort');
+  status.textContent = '⏳ Anfrage wird verarbeitet...';
+  antwort.textContent = '';
+  try {
+    const res = await fetch('http://n8n.local/webhook/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: frage })
+    });
+    const data = await res.json();
+    antwort.textContent = data.answer || JSON.stringify(data, null, 2);
+    status.textContent = '✅ Antwort erhalten';
+  } catch (err) {
+    status.textContent = '❌ Fehler bei der Anfrage';
+    antwort.textContent = String(err);
+  }
+});
+</script>
+</body>
+</html>

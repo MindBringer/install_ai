@@ -1,0 +1,68 @@
+{
+  "name": "Frage an Mistral",
+  "nodes": [
+    {
+      "parameters": {
+        "functionCode": "// Eingabe-Frage\nreturn [{\n  json: {\n    prompt: \"Was ist der Sinn des Lebens?\"\n  }\n}];"
+      },
+      "name": "Frage definieren",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://ollama:11434/api/generate",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\"model\": \"mistral\", \"prompt\": \"{{ $json[\\\"prompt\\\"] }}\", \"stream\": false}"
+      },
+      "name": "Anfrage an Mistral",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Antwort anzeigen",
+      "type": "n8n-nodes-base.debug",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Frage definieren": {
+      "main": [
+        [
+          {
+            "node": "Anfrage an Mistral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anfrage an Mistral": {
+      "main": [
+        [
+          {
+            "node": "Antwort anzeigen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dokument Upload</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    #progressBar { width: 100%; height: 1.5rem; margin-top: 1rem; display: none; }
+    #message { margin-top: 1rem; }
+    .error { color: #c00; }
+    .success { color: #080; }
+  </style>
+</head>
+<body>
+
+  <h1>Dokument hochladen</h1>
+
+  <input type="file" id="fileInput" />
+  <button id="uploadBtn">Hochladen</button>
+
+  <progress id="progressBar" max="100" value="0"></progress>
+  <div id="message"></div>
+
+  <script>
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const progressBar = document.getElementById('progressBar');
+    const messageDiv = document.getElementById('message');
+    const UPLOAD_URL = '/upload';  // oder volle URL: http://docs.local:8001/upload
+
+    function showMessage(text, cssClass='') {
+      messageDiv.textContent = text;
+      messageDiv.className = cssClass;
+    }
+
+    uploadBtn.addEventListener('click', () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        showMessage('Bitte zuerst eine Datei auswählen!', 'error');
+        return;
+      }
+
+      // FormData vorbereiten
+      const form = new FormData();
+      form.append('file', file);
+
+      // XHR für Fortschritt
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', UPLOAD_URL);
+
+      // Upload-Fortschritt
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round(event.loaded / event.total * 100);
+          progressBar.style.display = 'block';
+          progressBar.value = percent;
+        }
+      };
+
+      // Anfrage abgeschlossen
+      xhr.onload = () => {
+        progressBar.style.display = 'none';
+        if (xhr.status >= 200 && xhr.status < 300) {
+          let resp;
+          try {
+            resp = JSON.parse(xhr.responseText);
+          } catch (e) {
+            showMessage('Ungültige Antwort vom Server.', 'error');
+            return;
+          }
+          if (resp.success) {
+            showMessage(`Upload erfolgreich! Chunks: ${resp.chunks}`, 'success');
+            console.log('IDs:', resp.ids);
+          } else {
+            showMessage('Upload fehlgeschlagen: Server meldete Misserfolg.', 'error');
+            console.error('Server-Response:', resp);
+          }
+        } else {
+          // Fehlerstatus vom Server, versuche JSON-Detail auszugeben
+          let detail = '';
+          try {
+            const err = JSON.parse(xhr.responseText);
+            detail = err.detail || JSON.stringify(err);
+          } catch {
+            detail = xhr.statusText;
+          }
+          showMessage(`Fehler ${xhr.status}: ${detail}`, 'error');
+        }
+      };
+
+      xhr.onerror = () => {
+        progressBar.style.display = 'none';
+        showMessage('Verbindungsfehler beim Upload.', 'error');
+      };
+
+      xhr.onabort = () => {
+        progressBar.style.display = 'none';
+        showMessage('Upload abgebrochen.', 'error');
+      };
+
+      // Starte Upload
+      showMessage('Upload gestartet…');
+      xhr.send(form);
+    });
+  </script>
+
+</body>
+</html>

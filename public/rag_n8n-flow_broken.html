@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>RAG-Interface</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f5f5f5; }
+    h2 { color: #333; }
+    .status { margin-top: 1rem; padding: 1rem; border-radius: 5px; background: #fff; }
+    .loading { color: #555; }
+    .error { color: red; }
+    .success { color: green; }
+    input[type="file"], input[type="text"] { padding: 0.5rem; margin-top: 0.5rem; width: 100%; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 1rem; }
+    #answerBox { white-space: pre-wrap; margin-top: 1rem; background: #eaeaea; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h2>📄 Dokument hochladen</h2>
+  <form id="uploadForm" action="http://n8n.local/webhook/upload" method="post" enctype="multipart/form-data">
+    <input type="file" id="fileInput" name="data" required />
+    <button type="submit">📤 Hochladen</button>
+  </form>
+
+  <div id="uploadStatus" class="status loading"></div>
+
+  <hr />
+
+  <h2>💬 Frage zum Dokument stellen</h2>
+  <form id="qaForm">
+    <input type="text" id="question" placeholder="Was möchtest du wissen?" required />
+    <button type="submit">❓ Frage stellen</button>
+  </form>
+
+  <div id="qaStatus" class="status loading"></div>
+  <div id="answerBox"></div>
+
+  <script>
+    const uploadForm = document.getElementById("uploadForm");
+    const uploadStatus = document.getElementById("uploadStatus");
+    const qaForm = document.getElementById("qaForm");
+    const qaStatus = document.getElementById("qaStatus");
+    const answerBox = document.getElementById("answerBox");
+
+    uploadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      uploadStatus.textContent = "⏳ Datei wird hochgeladen...";
+      uploadStatus.className = "status loading";
+
+      const fileInput = document.getElementById("fileInput");
+      const formData = new FormData();
+      if (fileInput.files.length === 0) {
+        uploadStatus.textContent = "❌ Keine Datei ausgewählt.";
+        uploadStatus.className = "status error";
+        return;
+    }
+    formData.append("data", fileInput.files[0]);
+
+      try {
+        const response = await fetch("http://n8n.local/webhook/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          uploadStatus.textContent = "✅ Upload erfolgreich: " + (result.format || "Unbekanntes Format");
+          uploadStatus.className = "status success";
+        } else {
+          uploadStatus.textContent = "❌ Fehler beim Upload: " + (result.Fehler || "Unbekanntes Problem");
+          uploadStatus.className = "status error";
+        }
+      } catch (error) {
+        uploadStatus.textContent = "❌ Netzwerk- oder Serverfehler: " + error.message;
+        uploadStatus.className = "status error";
+      }
+    });
+
+    qaForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      qaStatus.textContent = "⏳ Frage wird verarbeitet...";
+      qaStatus.className = "status loading";
+      answerBox.textContent = "";
+
+      const question = document.getElementById("question").value;
+      try {
+        const response = await fetch("http://n8n.local/webhook/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          qaStatus.textContent = "✅ Antwort erhalten";
+          qaStatus.className = "status success";
+          answerBox.textContent = result.answer || "(Keine Antwort)";
+        } else {
+          qaStatus.textContent = "❌ Fehler bei der Anfrage";
+          qaStatus.className = "status error";
+          answerBox.textContent = result.Fehler || "(Unbekannter Fehler)";
+        }
+      } catch (error) {
+        qaStatus.textContent = "❌ Netzwerk- oder Serverfehler: " + error.message;
+        qaStatus.className = "status error";
+      }
+    });
+  </script>
+</body>
+</html>

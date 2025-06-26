@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-multipart
+pypdf
+python-docx
+html2text
+unstructured
+qdrant-client
