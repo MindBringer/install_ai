@@ -13,10 +13,10 @@ class EmbedResponse(BaseModel):
 
 @app.post("/embed", response_model=EmbedResponse)
 async def embed(req: EmbedRequest):
+    print("REQ JSON:", req.input)
     try:
         vectors = model.encode(req.input, show_progress_bar=False)
         return {"embeddings": vectors.tolist()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-print("REQ JSON:", await request.json())
+

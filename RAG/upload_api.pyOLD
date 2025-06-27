@@ -12,8 +12,7 @@ import pytesseract
 import pypandoc
 import pandas as pd
 from qdrant_client import QdrantClient
-import hashlib
-from qdrant_client.http.models import Filter, FieldCondition, MatchValue, Distance, VectorParams
+from qdrant_client.http.models import Distance, VectorParams
 import tiktoken
 
 # Configure logging
@@ -161,22 +160,10 @@ async def upload(file: UploadFile = File(...)):
 
     async with httpx.AsyncClient() as http:
         for chunk in chunks:
-            
-        text_hash = hashlib.sha256(chunk.encode("utf-8")).hexdigest()
-        duplicate = client.scroll(
-            collection_name="docs",
-            scroll_filter=Filter(
-                must=[FieldCondition(key="text_hash", match=MatchValue(value=text_hash))]
-            ),
-            limit=1
-        )
-        if duplicate and duplicate[0]:
-            logger.info("Duplicate detected — skipping.")
-            continue
-    try:
+            try:
                 response = await http.post(
                     EMBEDDING_ENDPOINT,
-                    json={"input": chunk},
+                    json={"input": [chunk]},
                     headers={"Authorization": f"Bearer {EMBEDDING_API_KEY}"}
                 )
                 response.raise_for_status()
