@@ -162,17 +162,17 @@ async def upload(file: UploadFile = File(...)):
     async with httpx.AsyncClient() as http:
         for chunk in chunks:
             
-        text_hash = hashlib.sha256(chunk.encode("utf-8")).hexdigest()
-        duplicate = client.scroll(
-            collection_name="docs",
-            scroll_filter=Filter(
-                must=[FieldCondition(key="text_hash", match=MatchValue(value=text_hash))]
-            ),
-            limit=1
-        )
-        if duplicate and duplicate[0]:
-            logger.info("Duplicate detected — skipping.")
-            continue
+            text_hash = hashlib.sha256(chunk.encode("utf-8")).hexdigest()
+            duplicate = client.scroll(
+                collection_name="docs",
+                scroll_filter=Filter(
+                    must=[FieldCondition(key="text_hash", match=MatchValue(value=text_hash))]
+                ),
+                limit=1
+          )
+          if duplicate and duplicate[0]:
+              logger.info("Duplicate detected — skipping.")
+              continue
     try:
                 response = await http.post(
                     EMBEDDING_ENDPOINT,
