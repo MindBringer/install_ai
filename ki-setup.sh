@@ -78,6 +78,7 @@ if [[ "$HOME" == "/root" ]]; then
 fi
 
 PROJECT_DIR="$HOME/ai-stack"
+mkdir -p "$PROJECT_DIR/RAG"
 mkdir -p "$PROJECT_DIR/public"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
