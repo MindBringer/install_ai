@@ -50,14 +50,14 @@ Falls Git-Zugriffstoken vorhanden:
 ### Repository clonen (z. B. dein GitHub-Repo):
 
 ```bash
-git clone https://token@github.com/MindBringer/ai-server-setup.git /home/user/ai-server-setup
+git clone https://token@github.com/MindBringer/install_ai /home/user/install_ai
 ```
 
 Oder kopiere einfach alle Skripte von USB auf den Server:
 
 ```bash
-sudo cp -r /mnt/usb/* /home/USER/ai-server-setup
-cd /home/USER/ai-server-setup
+sudo cp -r /mnt/usb/* /home/USER/install_ai
+cd /home/USER/install_ai
 chmod +x *.sh
 ```
 
