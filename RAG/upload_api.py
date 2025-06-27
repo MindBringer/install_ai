@@ -138,6 +138,11 @@ async def upload(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="No text extracted from document")
 
     chunks = chunk_text(text)
+    if "docs" not in [col.name for col in client.get_collections().collections]:
+        client.create_collection(
+            collection_name="docs",
+            vectors_config=VectorParams(size=len(embedding), distance=Distance.COSINE),
+        )
     points = []
 
     async with httpx.AsyncClient() as http:
@@ -172,12 +177,6 @@ async def upload(file: UploadFile = File(...)):
                 "vector": embedding,
                 "payload": {"text": chunk, "source": filename, "text_hash": text_hash}
             })
-
-    if "docs" not in [col.name for col in client.get_collections().collections]:
-        client.create_collection(
-            collection_name="docs",
-            vectors_config=VectorParams(size=len(embedding), distance=Distance.COSINE),
-        )
 
     try:
         client.upsert(collection_name="docs", points=points)
