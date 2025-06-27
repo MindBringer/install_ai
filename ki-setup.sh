@@ -79,6 +79,7 @@ fi
 
 PROJECT_DIR="$HOME/ai-stack"
 mkdir -p "$PROJECT_DIR/RAG"
+mkdir -p "$PROJECT_DIR/embed-service"
 mkdir -p "$PROJECT_DIR/public"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
@@ -100,6 +101,19 @@ fi
 
 # Export aller Variablen aus der .env
 export $(grep -v '^[[:space:]]*#' .env | xargs)
+
+### === embed-service aus Unterordner kopieren ===
+echo "📂 Übernehme RAG-Komponenten aus Unterordner 'RAG'..."
+EMB_SOURCE="$SCRIPT_DIR/embed-service"
+
+for file in embed-service.py Dockerfile.embed requirements-embed.txt; do
+  if [[ -f "$EMB_SOURCE/$file" ]]; then
+    cp "$EMB_SOURCE/$file" "$PROJECT_DIR/embed-service/"
+    echo "✅ Kopiert: $file"
+  else
+    echo "⚠️  Datei nicht gefunden: $EMB_SOURCE/$file"
+  fi
+done
 
 ### === RAG-Komponenten aus Unterordner kopieren ===
 echo "📂 Übernehme RAG-Komponenten aus Unterordner 'RAG'..."
