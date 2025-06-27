@@ -106,7 +106,7 @@ RAG_SOURCE="$SCRIPT_DIR/RAG"
 
 for file in upload_api.py Dockerfile.upload requirements.txt; do
   if [[ -f "$RAG_SOURCE/$file" ]]; then
-    cp "$RAG_SOURCE/$file" "$PROJECT_DIR/"
+    cp "$RAG_SOURCE/$file" "$PROJECT_DIR/RAG/"
     echo "✅ Kopiert: $file"
   else
     echo "⚠️  Datei nicht gefunden: $RAG_SOURCE/$file"
