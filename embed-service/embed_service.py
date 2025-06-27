@@ -18,3 +18,5 @@ async def embed(req: EmbedRequest):
         return {"embeddings": vectors.tolist()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+print("REQ JSON:", await request.json())

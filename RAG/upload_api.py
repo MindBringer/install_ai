@@ -162,7 +162,7 @@ async def upload(file: UploadFile = File(...)):
             try:
                 response = await http.post(
                     EMBEDDING_ENDPOINT,
-                    json={"input": chunk},
+                    json={"input": [chunk]},
                     headers={"Authorization": f"Bearer {EMBEDDING_API_KEY}"}
                 )
                 response.raise_for_status()
