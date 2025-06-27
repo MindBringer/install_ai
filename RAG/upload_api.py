@@ -178,6 +178,10 @@ async def upload(file: UploadFile = File(...)):
                 "payload": {"text": chunk, "source": filename, "text_hash": text_hash}
             })
 
+    if not points:
+        logger.info("No new chunks to insert – all were duplicates.")
+        return {"success": True, "chunks": 0, "ids": []}
+
     try:
         client.upsert(collection_name="docs", points=points)
     except Exception as e:
