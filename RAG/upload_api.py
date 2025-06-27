@@ -138,6 +138,11 @@ async def upload(file: UploadFile = File(...)):
             text = parse_csv(contents)
         elif ext in {".xlsx", ".xls"}:
             text = parse_xlsx(contents)
+        elif filename.endswith(".txt"):
+            try:
+                text = contents.decode("utf-8")
+            except UnicodeDecodeError:
+                text = contents.decode("latin-1")  # Fallback, falls UTF-8 fehl schlägt
         else:
             text = parse_text(contents)
     except HTTPException:

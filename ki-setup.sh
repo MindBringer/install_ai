@@ -236,7 +236,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8001:8000"              # bleibt so: Host 8001 → Container 8000
+      - "8001:8001"
     environment:
       - EMBEDDING_URL=http://embedding:8000/embed
     depends_on:
