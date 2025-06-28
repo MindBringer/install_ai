@@ -141,6 +141,19 @@ for file in frage.html upload.html; do
   fi
 done
 
+### === Docker aus Unterordner kopieren ===
+echo "📂 Übernehme DOcker Unterordner 'docker'..."
+DCK_SOURCE="$SCRIPT_DIR/docker"
+
+for file in docker-compose.yml; do
+  if [[ -f "$DCK_SOURCE/$file" ]]; then
+    cp "$DCK_SOURCE/$file" "$PROJECT_DIR/"
+    echo "✅ Kopiert: $file"
+  else
+    echo "⚠️  Datei nicht gefunden: $DCK_SOURCE/$file"
+  fi
+done
+
 ### === Qdrant-Collection ggf. auf 768-Dimension setzen (echtes Mistral-Embedding) ===
 echo "🧠 Stelle sicher, dass Qdrant mit Vektorlänge 768 arbeitet..."
 docker exec qdrant curl -s http://localhost:6333/collections/docs | grep 'vector_size' || \
@@ -166,117 +179,6 @@ RUN apk add --no-cache \
   unrtf \
   tesseract-ocr
 USER node
-EOF
-
-### === docker-compose.yml für Container erzeugen ===
-echo "🌐 Erzeuge docker-compose.yml für alle Container..."
-cat <<EOF > docker-compose.yml
-services:
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:ollama
-    container_name: open-webui
-    ports:
-      - "8080:8080"
-    environment:
-      - OLLAMA_API_BASE_URL=http://ollama:11434
-    volumes:
-      - webui_data:/app/backend/data
-    restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: qdrant
-    ports:
-      - "6333:6333"
-    restart: unless-stopped
-
-  n8n:
-    build:
-      context: ./n8n
-    image: custom-n8n:latest
-    container_name: n8n
-    ports:
-      - "5678:5678"
-    volumes:
-      - n8n_data:/home/node/.n8n
-    environment:
-      - GENERIC_TIMEZONE=Europe/Berlin
-      - N8N_BASIC_AUTH_ACTIVE=false
-      - N8N_SECURE_COOKIE=false
-    restart: unless-stopped
-
-  whisper:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    container_name: whisper
-    ports:
-      - "9000:9000"
-    env_file:
-      - .env
-    environment:
-      - ASR_ENGINE=whisperx
-      - ASR_MODEL=medium
-    volumes:
-      - whisper_data:/root/.cache
-    restart: unless-stopped
-
-  rag-upload:
-    build:
-      context: ./RAG
-      dockerfile: Dockerfile.upload
-    container_name: rag-upload
-    env_file:
-      - .env
-    ports:
-      - "8001:8001"
-    environment:
-      - EMBEDDING_URL=http://embedding:8000/embed
-    depends_on:
-      - embedding
-      - qdrant
-    restart: unless-stopped
-
-  embedding:
-    build:
-      context: ./embed-service
-      dockerfile: Dockerfile.embed
-    container_name: embedding
-    ports:
-      - "8002:8000"
-    restart: unless-stopped
-
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    network_mode: host
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./public:/srv/html
-    restart: unless-stopped
-
-  tester:
-    image: curlimages/curl:latest
-    container_name: tester
-    entrypoint: tail -f /dev/null
-    networks:
-      - default
-    restart: unless-stopped
-
-volumes:
-  webui_data:
-  ollama_data:
-  qdrant_storage: {}
-  n8n_data:
-  whisper_data:
-  rag_upload_data:
 EOF
 
 ### === Caddyfile für Subdomains erzeugen ===

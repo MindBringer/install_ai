@@ -1,0 +1,88 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./data/qdrant:/qdrant/storage       # 🔧 Bind Mount für einfache Sicherung & Analyse
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama           # 🧱 Named Volume – große Modelldateien, selten manuell
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:ollama
+    container_name: open-webui
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/webui:/app/backend/data      # 🔧 Bind Mount – Konfiguration & Chats sichtbar/editierbar
+    environment:
+      - OLLAMA_API_BASE_URL=http://ollama:11434
+    restart: unless-stopped
+
+  n8n:
+    build:
+      context: ./n8n
+    image: custom-n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./data/n8n:/home/node/.n8n          # 🔧 Bind Mount – Workflows, Credentials im Klartext
+    environment:
+      - GENERIC_TIMEZONE=Europe/Berlin
+      - N8N_BASIC_AUTH_ACTIVE=false
+    restart: unless-stopped
+
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: whisper
+    ports:
+      - "9000:9000"
+    volumes:
+      - whisper_cache:/root/.cache          # 🧱 Named Volume – Modelle + Whisper-Cache
+    environment:
+      - ASR_ENGINE=whisperx
+      - ASR_MODEL=medium
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  rag-upload:
+    build:
+      context: ./RAG
+      dockerfile: Dockerfile.upload
+    container_name: rag-upload
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - EMBEDDING_URL=http://embedding:8000/embed
+    volumes:
+      - ./data/uploads:/app/uploads         # 🔧 optional: z. B. für Logs oder persistente Uploads
+    depends_on:
+      - embedding
+      - qdrant
+    restart: unless-stopped
+
+  embedding:
+    build:
+      context: ./embed-service
+      dockerfile: Dockerfile.embed
+    container_name: embedding
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  whisper_cache:
