@@ -113,7 +113,7 @@ export $(grep -v '^[[:space:]]*#' .env | xargs)
 echo "📂 Übernehme RAG-Komponenten aus Unterordner 'RAG'..."
 EMB_SOURCE="$SCRIPT_DIR/embed-service"
 
-for file in embed-service.py Dockerfile.embed requirements-embed.txt; do
+for file in embed_service.py Dockerfile.embed requirements-embed.txt; do
   if [[ -f "$EMB_SOURCE/$file" ]]; then
     cp "$EMB_SOURCE/$file" "$PROJECT_DIR/embed-service/"
     echo "✅ Kopiert: $file"
@@ -227,12 +227,8 @@ http://ollama.local {
   reverse_proxy localhost:11434
 }
 
-http://rag.local {
-  reverse_proxy localhost:8001
-}
-
 http://api.local {
-  reverse_proxy localhost:8082
+  reverse_proxy localhost:8081
 }
 
 http://docs.local {

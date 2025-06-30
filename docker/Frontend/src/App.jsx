@@ -33,22 +33,29 @@ export default function RAGFrontend() {
       setToken(tokenResult.accessToken)
     }
   }
+const upload = async () => {
+  if (!file || !token) return
 
-  const upload = async () => {
-    if (!file || !token) return
-    const form = new FormData()
-    form.append("file", file)
-    form.append("access", access)
-    if (access === "restricted") form.append("group", group)
-    setUploadStatus("Uploading...")
-    const res = await fetch(`${API_BASE}/upload`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: form,
-    })
-    const data = await res.json()
-    setUploadStatus(res.ok ? "Upload erfolgreich" : `Fehler: ${data.detail || "Unknown"}`)
-  }
+  const form = new FormData()
+  form.append("file", file)
+  form.append("access", access)
+  if (access === "restricted") form.append("group", group)
+
+  const audioExtensions = [".mp3", ".wav", ".m4a", ".ogg", ".flac"]
+  const isAudio = audioExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+  const endpoint = isAudio ? "/upload-audio" : "/upload"
+
+  setUploadStatus("Uploading...")
+
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  })
+
+  const data = await res.json()
+  setUploadStatus(res.ok ? "Upload erfolgreich" : `Fehler: ${data.detail || "Unknown"}`)
+}
 
   const ask = async () => {
     if (!query || !token) return
