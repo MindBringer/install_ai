@@ -267,10 +267,10 @@ echo "🚀 Starte mistral einmal zum Initialisieren..."
 echo "Hallo" | docker exec -i ollama ollama run mistral || echo "⚠️ mistral konnte nicht initialisiert werden"
 
 ### === Qdrant Collection 'docs' anlegen (falls nötig) ===
-echo "📦 Erstelle Qdrant-Collection 'docs' (falls nicht vorhanden)..."
-curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:6333/collections/docs \
-  -H "Content-Type: application/json" \
-  -d '{"vectors":{"size":768,"distance":"Cosine"}}' || echo "⚠️  Collection möglicherweise schon vorhanden."
+#echo "📦 Erstelle Qdrant-Collection 'docs' (falls nicht vorhanden)..."
+#curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:6333/collections/docs \
+#  -H "Content-Type: application/json" \
+#  -d '{"vectors":{"size":768,"distance":"Cosine"}}' || echo "⚠️  Collection möglicherweise schon vorhanden."
 
 ### === Firewall einrichten ===
 echo "[7/8] 🔐 Konfiguriere UFW-Firewall (falls aktiv)..."

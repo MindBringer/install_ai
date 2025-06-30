@@ -84,3 +84,5 @@ bash ./ki-setup.sh
 
 ### für Web-RAG über n8n (broken in V1.99.1):
 mv rag_ui_frontend.html ~/ai-stack/public/rag.html
+
+vite oidc-rag frontend erstellen: node.js
