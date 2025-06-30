@@ -15,11 +15,12 @@ check_command() {
 ### === Systemvoraussetzungen ===
 echo "[1/8] 🛠️  Aktualisiere System & installiere Grundtools..."
 sudo apt update && sudo apt upgrade -y
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 sudo apt install -y \
   nano git curl wget gnupg lsb-release \
   ca-certificates apt-transport-https \
   software-properties-common iproute2 net-tools \
-  iputils-ping traceroute htop lsof unzip ufw
+  iputils-ping traceroute htop lsof nodejs unzip ufw
 
 ### === Docker & Compose Installation + Gruppenzugriff prüfen ===
 echo "[2/8] 🐳 Installiere Docker & Docker Compose..."
@@ -91,10 +92,13 @@ else
   echo "Keine .env im Projekt-Verzeichnis gefunden – erstelle Dummy .env mit Platzhaltern"
   cat <<EOD > .env
 # Beispiel .env – bitte anpassen:
-EMBEDDING_URL=https://api.openai.com/v1/embeddings
+EMBEDDING_URL=http://embedding:8000
 EMBEDDING_API_KEY=YOUR_API_KEY_HERE
-QDRANT_URL=http://localhost:6333
+QDRANT_URL=http://qdrant:6333
 WHISPER_HF_TOKEN=hf_xxxxxxxxxxxxx
+VITE_API_BASE_URL=http://api.local
+VITE_AZURE_CLIENT_ID=...
+VITE_AZURE_TENANT_ID=...
 EOD
   echo "⚠️ .env Dummy angelegt – bitte Werte in .env ergänzen!"
 fi
@@ -129,20 +133,32 @@ for file in upload_api.py Dockerfile.upload requirements.txt; do
 done
 
 ### === Interfaces / Web-Oberflächen aus Unterordner kopieren ===
-echo "📂 Übernehme Interfaces / Web-Oberflächen aus Unterordner 'public'..."
-PUB_SOURCE="$SCRIPT_DIR/public"
+echo "echo "📁 Baue das Frontend (Vite + React)..."
+FRONTEND_DIR="$SCRIPT_DIR/docker/Frontend
 
-for file in frage.html upload.html; do
-  if [[ -f "$PUB_SOURCE/$file" ]]; then
-    cp "$PUB_SOURCE/$file" "$PROJECT_DIR/public/"
-    echo "✅ Kopiert: $file"
-  else
-    echo "⚠️  Datei nicht gefunden: $PUB_SOURCE/$file"
-  fi
-done
+if [ ! -d "$FRONTEND_DIR" ]; then
+  echo "❌ Frontend-Ordner fehlt: $FRONTEND_DIR"
+  exit 1
+fi
+
+cd "$FRONTEND_DIR"
+
+# Vite-Abhängigkeiten installieren
+npm install
+
+# Frontend bauen
+npm run build
+
+# Ausgabe nach ../public kopieren (muss existieren)
+echo "📁 Kopiere gebaute Dateien nach ./public/"
+
+cp -r dist/* "$PROJECT_DIR/public/"
+
+cd "$PROJECT_DIR"
+
 
 ### === Docker aus Unterordner kopieren ===
-echo "📂 Übernehme DOcker Unterordner 'docker'..."
+echo "📂 Übernehme Docker Unterordner 'docker'..."
 DCK_SOURCE="$SCRIPT_DIR/docker"
 
 for file in docker-compose.yml; do
@@ -207,6 +223,10 @@ http://ollama.local {
 
 http://rag.local {
   reverse_proxy localhost:8001
+}
+
+http://api.local {
+  reverse_proxy localhost:8082
 }
 
 http://docs.local {
