@@ -15,12 +15,16 @@ check_command() {
 ### === Systemvoraussetzungen ===
 echo "[1/8] 🛠️  Aktualisiere System & installiere Grundtools..."
 sudo apt update && sudo apt upgrade -y
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 sudo apt install -y \
   nano git curl wget gnupg lsb-release \
   ca-certificates apt-transport-https \
   software-properties-common iproute2 net-tools \
-  iputils-ping traceroute htop lsof npm nodejs unzip ufw
+  iputils-ping traceroute htop lsof npm unzip ufw
+
+### === Node.js & NPM Installation ===
+sudo apt remove nodejs -y
+sudo npm install -g n
+sudo n lts
 
 ### === Docker & Compose Installation + Gruppenzugriff prüfen ===
 echo "[2/8] 🐳 Installiere Docker & Docker Compose..."
