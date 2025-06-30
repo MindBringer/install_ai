@@ -22,7 +22,6 @@ sudo apt install -y \
   iputils-ping traceroute htop lsof npm unzip ufw
 
 ### === Node.js & NPM Installation ===
-sudo apt remove nodejs -y
 sudo npm install -g n
 sudo n lts
 
