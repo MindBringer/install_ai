@@ -20,7 +20,7 @@ sudo apt install -y \
   nano git curl wget gnupg lsb-release \
   ca-certificates apt-transport-https \
   software-properties-common iproute2 net-tools \
-  iputils-ping traceroute htop lsof nodejs unzip ufw
+  iputils-ping traceroute htop lsof npm nodejs unzip ufw
 
 ### === Docker & Compose Installation + Gruppenzugriff prüfen ===
 echo "[2/8] 🐳 Installiere Docker & Docker Compose..."
@@ -133,8 +133,8 @@ for file in upload_api.py Dockerfile.upload requirements.txt; do
 done
 
 ### === Interfaces / Web-Oberflächen aus Unterordner kopieren ===
-echo "echo "📁 Baue das Frontend (Vite + React)..."
-FRONTEND_DIR="$SCRIPT_DIR/docker/Frontend
+echo "📁 Baue das Frontend (Vite + React)..."
+FRONTEND_DIR="$SCRIPT_DIR/docker/Frontend"
 
 if [ ! -d "$FRONTEND_DIR" ]; then
   echo "❌ Frontend-Ordner fehlt: $FRONTEND_DIR"
