@@ -136,7 +136,7 @@ for file in upload_api.py Dockerfile.upload requirements.txt; do
 done
 
 ### === Interfaces / Web-Oberflächen aus Unterordner kopieren ===
-echo "📁 Baue das Frontend (Vite + React)..."
+echo "📁 Baue das React-Frontend mit Vite..."
 FRONTEND_DIR="$SCRIPT_DIR/docker/Frontend"
 
 if [ ! -d "$FRONTEND_DIR" ]; then
@@ -147,7 +147,10 @@ fi
 cd "$FRONTEND_DIR"
 
 # Vite-Abhängigkeiten installieren
-npm install
+if [ ! -d node_modules ]; then
+  echo "[i] Installiere Frontend-Abhängigkeiten..."
+  npm install
+fi
 
 # Frontend bauen
 npm run build
