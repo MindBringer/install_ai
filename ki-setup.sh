@@ -247,7 +247,7 @@ http://docs.local {
 EOF
 
 ### === Portkonflikte prüfen (alle benötigten Ports) ===
-REQUIRED_PORTS=(80 8001 8080 11434 5678 9000 6333)
+REQUIRED_PORTS=(80 8000 8001 8002 8080 11434 5678 9000 6333)
 for port in "${REQUIRED_PORTS[@]}"; do
   echo "🔍 Prüfe, ob Port $port bereits belegt ist..."
   if sudo lsof -i :$port -sTCP:LISTEN -nP | grep -v COMMAND; then
