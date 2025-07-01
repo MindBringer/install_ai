@@ -236,8 +236,9 @@ http://ollama.local {
   reverse_proxy localhost:11434
 }
 
-http://api.local {
-  reverse_proxy localhost:8081
+api.local {
+  reverse_proxy localhost:80
+  tls internal
 }
 
 http://docs.local {
