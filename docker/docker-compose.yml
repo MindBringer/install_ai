@@ -7,7 +7,6 @@ services:
     volumes:
       - ./data/qdrant:/qdrant/storage       # 🔧 Bind Mount für einfache Sicherung & Analyse
     restart: unless-stopped
-
   ollama:
     image: ollama/ollama
     container_name: ollama
@@ -16,7 +15,6 @@ services:
     volumes:
       - ollama_data:/root/.ollama           # 🧱 Named Volume – große Modelldateien, selten manuell
     restart: unless-stopped
-
   open-webui:
     image: ghcr.io/open-webui/open-webui:ollama
     container_name: open-webui
@@ -27,7 +25,6 @@ services:
     environment:
       - OLLAMA_API_BASE_URL=http://ollama:11434
     restart: unless-stopped
-
   n8n:
     build:
       context: ./n8n
@@ -41,7 +38,6 @@ services:
       - GENERIC_TIMEZONE=Europe/Berlin
       - N8N_BASIC_AUTH_ACTIVE=false
     restart: unless-stopped
-
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
     container_name: whisper
@@ -79,7 +75,6 @@ services:
       - embedding
       - qdrant
     restart: unless-stopped
-
   embedding:
     build:
       context: ./embed-service
@@ -87,6 +82,14 @@ services:
     container_name: embedding
     ports:
       - "8002:8000"
+    restart: unless-stopped
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    network_mode: host
+    volumes:
+      - ./Caddyfile:./Caddyfile
+      - ./public:/srv/html
     restart: unless-stopped
   frontend:
     build:
