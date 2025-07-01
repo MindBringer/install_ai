@@ -90,7 +90,7 @@ services:
     restart: unless-stopped
   frontend:
     build:
-      context: ./docker/frontend-nginx
+      context: ./frontend-nginx
     container_name: rag-frontend
     ports:
       - "80:80"

@@ -147,6 +147,15 @@ fi
 
 cd "$FRONTEND_DIR"
 
+for file in Dockerfile nginx.conf; do
+  if [[ -f "$SCRIPT_DIR/docker/frontend-nginx/$file" ]]; then
+    cp "$SCRIPT_DIR/docker/frontend-nginx/$file" "$PROJECT_DIR/frontend-nginx/"
+    echo "✅ Kopiert: $file"
+  else
+    echo "⚠️  Datei nicht gefunden: $SCRIPT_DIR/docker/frontend-nginx/$file"
+  fi
+done
+
 # Vite-Abhängigkeiten installieren
 if [ ! -d node_modules ]; then
   echo "[i] Installiere Frontend-Abhängigkeiten..."
