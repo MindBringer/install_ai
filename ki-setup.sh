@@ -279,7 +279,7 @@ if ! docker info &>/dev/null; then
 fi
 
 ### === Container starten ===
-docker compose build rag-upload n8n
+docker compose build
 docker compose up -d
 
 ### === Modellprüfung und Pull absichern ===
