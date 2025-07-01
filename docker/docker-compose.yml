@@ -55,7 +55,13 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-
+  tester:
+    image: curlimages/curl:latest
+    container_name: tester
+    entrypoint: tail -f /dev/null
+    networks:
+      - default
+    restart: unless-stopped
   rag-upload:
     build:
       context: ./RAG
@@ -81,6 +87,15 @@ services:
     container_name: embedding
     ports:
       - "8002:8000"
+    restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend-nginx
+    container_name: rag-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - rag-upload
     restart: unless-stopped
 
 volumes:

@@ -85,6 +85,7 @@ PROJECT_DIR="$HOME/ai-stack"
 mkdir -p "$PROJECT_DIR/RAG"
 mkdir -p "$PROJECT_DIR/embed-service"
 mkdir -p "$PROJECT_DIR/public"
+mkdir -p "$PROJECT_DIR/frontend-nginx/dist"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
@@ -126,7 +127,7 @@ done
 echo "📂 Übernehme RAG-Komponenten aus Unterordner 'RAG'..."
 RAG_SOURCE="$SCRIPT_DIR/RAG"
 
-for file in upload_api.py Dockerfile.upload requirements.txt; do
+for file in upload_api.py query_api.py auth_middleware.py Dockerfile.upload requirements.txt; do
   if [[ -f "$RAG_SOURCE/$file" ]]; then
     cp "$RAG_SOURCE/$file" "$PROJECT_DIR/RAG/"
     echo "✅ Kopiert: $file"
@@ -156,12 +157,11 @@ fi
 npm run build
 
 # Ausgabe nach ../public kopieren (muss existieren)
-echo "📁 Kopiere gebaute Dateien nach ./public/"
+echo "📁 Kopiere gebaute Dateien in Nginx"
 
-cp -r dist/* "$PROJECT_DIR/public/"
+cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
 
 cd "$PROJECT_DIR"
-
 
 ### === Docker aus Unterordner kopieren ===
 echo "📂 Übernehme Docker Unterordner 'docker'..."
