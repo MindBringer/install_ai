@@ -164,6 +164,14 @@ if command -v ufw &>/dev/null; then
 fi
 
 ### === [7/8] Container phasenweise starten ===
+echo "🧪 Teste Docker-Verfügbarkeit ohne Root..."
+if ! docker info &>/dev/null; then
+  echo "❌ Docker ist nicht verfügbar für den aktuellen Benutzer."
+  echo "💡 Bitte führe 'newgrp docker' aus oder logge dich neu ein."
+  echo "❌ Abbruch."
+  exit 1
+fi
+
 echo "[7/8] 🚀 Starte Container phasenweise..."
 docker compose build
 
