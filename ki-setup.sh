@@ -105,6 +105,7 @@ mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 mkdir -p "$PROJECT_DIR/embed-service"
 cp "$SCRIPT_DIR/embed-service/"* "$PROJECT_DIR/embed-service/"
+mkdir -p "$PROJECT_DIR/RAG"
 cp "$SCRIPT_DIR/RAG/"* "$PROJECT_DIR/RAG/"
 
 cd "$SCRIPT_DIR/docker/Frontend"
