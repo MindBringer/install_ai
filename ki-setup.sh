@@ -93,7 +93,7 @@ export $(grep -v '^[[:space:]]*#' .env | xargs)
 
 ### === Dateien kopieren ===
 echo "[4/8] 📂 Dateien vorbereiten..."
-cp "$SCRIPT_DIR/docker/docker-compose.yml" "$PROJECT_DIR/"
+sed \"s|build:\\s*context: ./n8n|build:\\n      context: ./n8n|\" \"$SCRIPT_DIR/docker/docker-compose.yml\" > \"$PROJECT_DIR/docker-compose.yml\"
 cp "$SCRIPT_DIR/docker/frontend-nginx/Dockerfile" "$PROJECT_DIR/frontend-nginx/"
 cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 cp "$SCRIPT_DIR/embed-service/"* "$PROJECT_DIR/embed-service/"
