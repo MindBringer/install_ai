@@ -94,7 +94,10 @@ export $(grep -v '^[[:space:]]*#' .env | xargs)
 ### === [4/8] Dateien kopieren ===
 echo "[4/8] 📂 Dateien vorbereiten..."
 cp "$SCRIPT_DIR/docker/docker-compose.yml" "$PROJECT_DIR/docker-compose.yml"
-sed -i '/^\s*build:\s*$/, /^\s*image:/s|context: .*|context: ./n8n|' "$PROJECT_DIR/docker-compose.yml"
+sed -i '/n8n:/,/restart:/s|context: .*|context: ./n8n|' "$PROJECT_DIR/docker-compose.yml"
+sed -i '/embedding:/,/restart:/s|context: .*|context: ./embed-service|' "$PROJECT_DIR/docker-compose.yml"
+sed -i '/rag-upload:/,/restart:/s|context: .*|context: ./RAG|' "$PROJECT_DIR/docker-compose.yml"
+sed -i '/frontend:/,/restart:/s|context: .*|context: ./frontend-nginx|' "$PROJECT_DIR/docker-compose.yml"
 mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/Dockerfile" "$PROJECT_DIR/frontend-nginx/"
 mkdir -p "$PROJECT_DIR/frontend-nginx"
