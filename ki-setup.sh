@@ -56,12 +56,11 @@ fi
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
 PROJECT_DIR="$HOME/ai-stack"
-mkdir -p "$PROJECT_DIR/{RAG,embed-service,public,frontend-nginx/dist,n8n}"
+mkdir -p "$PROJECT_DIR/RAG" "$PROJECT_DIR/embed-service" "$PROJECT_DIR/public" "$PROJECT_DIR/frontend-nginx/dist" "$PROJECT_DIR/n8n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
 echo "🛠️ Erzeuge erweitertes n8n-Image mit breiter Dokumenten-Unterstützung..."
-mkdir -p "$PROJECT_DIR/n8n"
 touch "$PROJECT_DIR/n8n/Dockerfile"
 cat <<EOF > "$PROJECT_DIR/n8n/Dockerfile"
 FROM n8nio/n8n
