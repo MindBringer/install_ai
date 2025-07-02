@@ -183,6 +183,7 @@ echo "[6/8] 🔐 Konfiguriere Firewall..."
 if command -v ufw &>/dev/null; then
   sudo ufw allow 22/tcp
   sudo ufw allow 80/tcp
+  sudo ufw allow 443/tcp
   sudo ufw allow 5678/tcp
   sudo ufw allow 8080/tcp
   sudo ufw allow 6333/tcp
