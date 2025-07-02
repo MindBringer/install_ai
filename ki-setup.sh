@@ -94,24 +94,44 @@ export $(grep -v '^[[:space:]]*#' .env | xargs)
 ### === [4/8] Dateien kopieren ===
 echo "[4/8] 📂 Dateien vorbereiten..."
 cp "$SCRIPT_DIR/docker/docker-compose.yml" "$PROJECT_DIR/docker-compose.yml"
-sed -i '/n8n:/,/build:/s|context: .*|context: ./n8n|' "$PROJECT_DIR/docker-compose.yml"
-sed -i '/embedding:/,/build:/s|context: .*|context: ./embed-service|' "$PROJECT_DIR/docker-compose.yml"
-mkdir -p "$PROJECT_DIR/RAG"
-sed -i '/rag-upload:/,/build:/s|context: .*|context: ./RAG|' "$PROJECT_DIR/docker-compose.yml"
-sed -i '/frontend:/,/build:/s|context: .*|context: ./frontend-nginx|' "$PROJECT_DIR/docker-compose.yml" "$PROJECT_DIR/docker-compose.yml"
+
+# Kopiere n8n-Dateien
+mkdir -p "$PROJECT_DIR/n8n"
+touch "$PROJECT_DIR/n8n/Dockerfile"
+cat <<EOF > "$PROJECT_DIR/n8n/Dockerfile"
+FROM n8nio/n8n
+
+USER root
+RUN apk add --no-cache \
+  poppler-utils \
+  bash \
+  coreutils \
+  pandoc \
+  html2text \
+  unrtf \
+  tesseract-ocr
+USER node
+EOF
+
+# Kopiere frontend-nginx-Dateien
 mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/Dockerfile" "$PROJECT_DIR/frontend-nginx/"
-mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
+
+# Kopiere embed-service-Dateien
 mkdir -p "$PROJECT_DIR/embed-service"
 cp -r "$SCRIPT_DIR/embed-service/." "$PROJECT_DIR/embed-service/"
-mkdir -p "$PROJECT_DIR/RAG"
-cp "$SCRIPT_DIR/RAG/"* "$PROJECT_DIR/RAG/"
 
+# Kopiere RAG-Dateien
+mkdir -p "$PROJECT_DIR/RAG"
+cp -r "$SCRIPT_DIR/RAG/." "$PROJECT_DIR/RAG/"
+
+# Kopiere Frontend build
 cd "$SCRIPT_DIR/docker/Frontend"
 [ ! -d node_modules ] && npm install
 npm run build
 cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
+
 
 ### === [5/8] 🌐 Erzeuge Caddyfile ===
 echo "[5/8] 🌐 Erzeuge Caddyfile für Subdomain-Reverse-Proxy..."
@@ -174,6 +194,7 @@ fi
 
 ### === [7/8] Container phasenweise starten ===
 echo "🧪 Teste Docker-Verfügbarkeit ohne Root..."
+cd "$PROJECT_DIR"
 if ! docker info &>/dev/null; then
   echo "❌ Docker ist nicht verfügbar für den aktuellen Benutzer."
   echo "💡 Bitte führe 'newgrp docker' aus oder logge dich neu ein."
