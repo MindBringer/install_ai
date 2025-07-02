@@ -132,46 +132,46 @@ cd "$SCRIPT_DIR/docker/Frontend"
 npm run build
 cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
 
-
 ### === [5/8] 🌐 Erzeuge Caddyfile ===
 echo "[5/8] 🌐 Erzeuge Caddyfile für Subdomain-Reverse-Proxy..."
 cat <<EOF > "$PROJECT_DIR/Caddyfile"
 {
-  auto_https off
+  auto_https disable_redirects
+  local_certs
   admin off
 }
 
-http://chat.local {
+chat.local {
   reverse_proxy localhost:8080
   tls internal
 }
 
-http://n8n.local {
+n8n.local {
   reverse_proxy localhost:5678
   tls internal
 }
 
-http://whisper.local {
+whisper.local {
   reverse_proxy localhost:9000
   tls internal
 }
 
-http://ollama.local {
+ollama.local {
   reverse_proxy localhost:11434
   tls internal
 }
 
-http://api.local {
+api.local {
   reverse_proxy localhost:80
   tls internal
 }
 
-http://rag.local {
+rag.local {
   reverse_proxy localhost:8001
   tls internal
 }
 
-http://docs.local {
+docs.local {
   root * /srv/html
   file_server browse
   tls internal
