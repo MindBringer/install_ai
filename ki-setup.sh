@@ -61,6 +61,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
 echo "🛠️ Erzeuge erweitertes n8n-Image mit breiter Dokumenten-Unterstützung..."
+mkdir -p "$PROJECT_DIR/n8n"
+touch "$PROJECT_DIR/n8n/Dockerfile"
 cat <<EOF > "$PROJECT_DIR/n8n/Dockerfile"
 FROM n8nio/n8n
 
