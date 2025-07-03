@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import type { UserConfigExport } from 'vite'
 
-const config: UserConfigExport = defineConfig({
+export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
@@ -14,5 +13,3 @@ const config: UserConfigExport = defineConfig({
     outDir: 'dist'
   }
 })
-
-export default config

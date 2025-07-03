@@ -1,9 +1,5 @@
-import React from "react"
-import ReactDOM from "react-dom/client"
-import RAGFrontend from "./App.tsx"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./components/App";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <RAGFrontend />
-  </React.StrictMode>
-)
+ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
