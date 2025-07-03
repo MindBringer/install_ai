@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { PublicClientApplication } from "@azure/msal-browser"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/button"
+import { Input } from "@/components/input"
+import { Card, CardContent } from "@/components/card"
 
 const msalConfig = {
   auth: {
