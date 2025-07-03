@@ -96,7 +96,7 @@ services:
   frontend:
     build:
       context: ./frontend-nginx
-    container_name: rag-frontend
+    container_name: frontend
     ports:
       - "80:80"
     depends_on:
