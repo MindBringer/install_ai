@@ -24,6 +24,7 @@ sudo apt install -y \
 
 sudo npm install -g n
 sudo n lts
+npm install --save-dev typescript @types/react @types/react-dom
 
 ### === [2/8] Docker & Compose ===
 echo "[2/8] 🐳 Installiere Docker & Compose..."

@@ -17,13 +17,13 @@ const msalInstance = new PublicClientApplication(msalConfig)
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ""
 
 export default function RAGFrontend() {
-  const [token, setToken] = useState(null)
+  const [token, setToken] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [access, setAccess] = useState("public")
   const [group, setGroup] = useState("")
-  const [uploadStatus, setUploadStatus] = useState(null)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [query, setQuery] = useState("")
-  const [response, setResponse] = useState(null)
+  const [response, setResponse] = useState<string | null>(null)
 
   const login = async () => {
     const result = await msalInstance.loginPopup({ scopes: ["openid", "profile", "email"] })
