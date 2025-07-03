@@ -103,8 +103,20 @@ services:
       - rag-upload
     restart: unless-stopped
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start --optimized
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: adminpass
+    ports:
+      - "8081:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
 volumes:
   ollama_data:
   whisper_cache:
   caddy_data:
   caddy_config:
+  keycloak_data:

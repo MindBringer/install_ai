@@ -57,7 +57,7 @@ fi
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
 PROJECT_DIR="$HOME/ai-stack"
-mkdir -p "$PROJECT_DIR/RAG" "$PROJECT_DIR/embed-service" "$PROJECT_DIR/public" "$PROJECT_DIR/frontend-nginx/dist" "$PROJECT_DIR/n8n"
+mkdir -p "$PROJECT_DIR/RAG" "$PROJECT_DIR/embed-service" "$PROJECT_DIR/public" "$PROJECT_DIR/frontend-nginx/dist" "$PROJECT_DIR/n8n" "$PROJECT_DIR/keycloak"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
@@ -230,8 +230,8 @@ docker exec tester curl -fs http://n8n:5678/ && echo "✅ n8n erreichbar" || ech
 read -p "⏭️ Weiter mit Phase 3? [Enter]"
 
 ## Phase 3
-echo "➡️ Phase 3: frontend, caddy"
-docker compose up -d frontend caddy
+echo "➡️ Phase 3: keycloak, frontend, caddy"
+docker compose up -d keycloak frontend caddy
 sleep 5
 echo "🌐 Zugriff über Subdomains (DNS oder /etc/hosts nötig):"
 echo " - http://chat.local         → Open WebUI"
