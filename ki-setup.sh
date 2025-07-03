@@ -24,7 +24,7 @@ sudo apt install -y \
 
 sudo npm install -g n
 sudo n lts
-npm install --save-dev typescript @types/react @types/react-dom
+npm install --save-dev typescript @types/react @types/react-dom @react-keycloak/web keycloak-js
 
 ### === [2/8] Docker & Compose ===
 echo "[2/8] 🐳 Installiere Docker & Compose..."
@@ -85,8 +85,9 @@ EMBEDDING_API_KEY=YOUR_API_KEY_HERE
 QDRANT_URL=http://qdrant:6333
 WHISPER_HF_TOKEN=hf_xxxxxxxxxxxxx
 VITE_API_BASE_URL=http://api.local
-VITE_AZURE_CLIENT_ID=...
-VITE_AZURE_TENANT_ID=...
+VITE_KEYCLOAK_URL=https://auth.local
+VITE_KEYCLOAK_REALM=mein-unternehmen
+VITE_KEYCLOAK_CLIENT_ID=frontend
 EOD
   echo "⚠️ .env Dummy angelegt – bitte anpassen!"
 fi
@@ -164,6 +165,11 @@ ollama.local {
 
 api.local {
   reverse_proxy localhost:80
+  tls internal
+}
+
+auth.local {
+  reverse_proxy keycloak:8080
   tls internal
 }
 
