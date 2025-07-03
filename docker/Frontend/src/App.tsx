@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 const msalConfig = {
   auth: {
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
+    clientId: import.meta.env.VITE_AZURE_CLIENT_ID!,
     authority: `https://login.microsoftonline.com/${import.meta.env.VITE_AZURE_TENANT_ID}`,
     redirectUri: window.location.origin,
   },
@@ -25,14 +25,29 @@ export default function RAGFrontend() {
   const [query, setQuery] = useState("")
   const [response, setResponse] = useState<string | null>(null)
 
+  // Initialisiere MSAL beim Laden
+  useEffect(() => {
+    msalInstance.initialize().catch((err) => {
+      console.error("MSAL Initialization failed:", err)
+    })
+  }, [])
+
   const login = async () => {
-    const result = await msalInstance.loginPopup({ scopes: ["openid", "profile", "email"] })
-    const accounts = msalInstance.getAllAccounts()
-    if (accounts.length > 0) {
-      const tokenResult = await msalInstance.acquireTokenSilent({ scopes: ["openid"], account: accounts[0] })
-      setToken(tokenResult.accessToken)
+    try {
+      const result = await msalInstance.loginPopup({ scopes: ["openid", "profile", "email"] })
+      const accounts = msalInstance.getAllAccounts()
+      if (accounts.length > 0) {
+        const tokenResult = await msalInstance.acquireTokenSilent({
+          scopes: ["openid"],
+          account: accounts[0],
+        })
+        setToken(tokenResult.accessToken)
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
     }
   }
+
 const upload = async () => {
   if (!file || !token) return
 
@@ -70,7 +85,7 @@ const upload = async () => {
   return (
     <div className="p-4 space-y-4">
       {!token ? (
-        <Button onClick={login}>Login mit Azure</Button>
+        <Button onClick={login}>Login mit Microsoft-Anmeldung</Button>
       ) : (
         <>
           <Card>
