@@ -22,19 +22,31 @@ services:
       - GENERIC_TIMEZONE=Europe/Berlin
       - N8N_BASIC_AUTH_ACTIVE=false
     restart: unless-stopped
-  whisper:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    container_name: whisper
-    ports:
-      - "9000:9000"
+
+  whisperx:
+    build:
+      context: ./whisperx
+      dockerfile: whisperx.Dockerfile
+    container_name: whisperx
     volumes:
-      - whisper_cache:/root/.cache          # 🧱 Named Volume – Modelle + Whisper-Cache
-    environment:
-      - ASR_ENGINE=whisperx
-      - ASR_MODEL=medium
+      - ./data/whisperx:/data                 # optionaler Mount für Audio
     env_file:
-      - .env
+      - .env                 # dein HF-Token (z. B. in .env)
     restart: unless-stopped
+
+  #whisper:
+  #  image: onerahmet/openai-whisper-asr-webservice:latest
+  #  container_name: whisper
+  #  ports:
+  #    - "9000:9000"
+  #  volumes:
+  #    - whisper_cache:/root/.cache          # 🧱 Named Volume – Modelle + Whisper-Cache
+  #  environment:
+  #    - ASR_ENGINE=whisperx
+  #    - ASR_MODEL=medium
+  #  env_file:
+  #    - .env
+  #  restart: unless-stopped
   tester:
     image: curlimages/curl:latest
     container_name: tester
