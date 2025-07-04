@@ -17,7 +17,7 @@ check_command() {
 echo "[1/8] 🛠️  Aktualisiere System & installiere Grundtools..."
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y \
-  nano git curl wget gnupg lsb-release \
+  nano git curl jq wget gnupg lsb-release \
   ca-certificates apt-transport-https \
   software-properties-common iproute2 net-tools \
   iputils-ping traceroute htop lsof npm unzip ufw
@@ -61,23 +61,6 @@ mkdir -p "$PROJECT_DIR/RAG" "$PROJECT_DIR/embed-service" "$PROJECT_DIR/public" "
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
-echo "🛠️ Erzeuge erweitertes n8n-Image mit breiter Dokumenten-Unterstützung..."
-touch "$PROJECT_DIR/n8n/Dockerfile"
-cat <<EOF > "$PROJECT_DIR/n8n/Dockerfile"
-FROM n8nio/n8n
-
-USER root
-RUN apk add --no-cache \
-  poppler-utils \
-  bash \
-  coreutils \
-  pandoc \
-  html2text \
-  unrtf \
-  tesseract-ocr
-USER node
-EOF
-
 if [ ! -f .env ]; then
   cat <<EOD > .env
 EMBEDDING_URL=http://embedding:8000
@@ -96,24 +79,6 @@ export $(grep -v '^[[:space:]]*#' .env | xargs)
 ### === [4/8] Dateien kopieren ===
 echo "[4/8] 📂 Dateien vorbereiten..."
 cp "$SCRIPT_DIR/docker/docker-compose.yml" "$PROJECT_DIR/docker-compose.yml"
-
-# Kopiere n8n-Dateien
-mkdir -p "$PROJECT_DIR/n8n"
-touch "$PROJECT_DIR/n8n/Dockerfile"
-cat <<EOF > "$PROJECT_DIR/n8n/Dockerfile"
-FROM n8nio/n8n
-
-USER root
-RUN apk add --no-cache \
-  poppler-utils \
-  bash \
-  coreutils \
-  pandoc \
-  html2text \
-  unrtf \
-  tesseract-ocr
-USER node
-EOF
 
 # Kopiere frontend-nginx-Dateien
 mkdir -p "$PROJECT_DIR/frontend-nginx"
@@ -214,16 +179,31 @@ echo "[7/8] 🚀 Starte Container phasenweise..."
 docker compose build
 
 ## Phase 1
-echo "➡️ Phase 1: qdrant, ollama, embedding, open-webui, tester"
-docker compose up -d qdrant ollama embedding open-webui tester
+echo "➡️ Phase 1: qdrant, ollama mit Modellen, embedding, open-webui, tester"
+docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-mixtral ollama-nous ollama-yib embedding open-webui tester
 sleep 10
 echo "🔍 Prüfe Phase 1..."
 docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" || echo "❌ Qdrant nicht erreichbar"
-docker exec tester curl -fs http://ollama:11434/ && echo "✅ Ollama erreichbar" || echo "❌ Ollama nicht erreichbar"
 docker exec tester curl -fs http://open-webui:8080/ && echo "✅ WebUI erreichbar" || echo "❌ WebUI nicht erreichbar"
-echo "🤖 Initialisiere mistral..."
-docker exec ollama ollama pull mistral || true
-echo "Hallo" | docker exec -i ollama ollama run mistral || true
+echo "🤖 Initialisiere Modelle..."
+
+declare -A MODEL_PORTS=(
+  [mistral]=11431
+  [mixtral]=11432
+  [command-r]=11433
+  [yi]=11434
+  [openhermes]=11435
+  [nous-hermes2]=11436
+)
+
+for model in "${!MODEL_PORTS[@]}"; do
+  port="${MODEL_PORTS[$model]}"
+  echo "🧠 Teste Modell '$model' auf Port $port ..."
+  curl -s http://localhost:$port/api/generate \
+    -H "Content-Type: application/json" \
+    -d "{\"model\": \"$model\", \"prompt\": \"Hallo\", \"stream\": false}" | jq
+done
+
 read -p "⏭️ Weiter mit Phase 2? [Enter]"
 
 ## Phase 2

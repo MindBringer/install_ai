@@ -7,27 +7,11 @@ services:
     volumes:
       - ./data/qdrant:/qdrant/storage       # 🔧 Bind Mount für einfache Sicherung & Analyse
     restart: unless-stopped
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama           # 🧱 Named Volume – große Modelldateien, selten manuell
-    restart: unless-stopped
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:ollama
-    container_name: open-webui
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data/webui:/app/backend/data      # 🔧 Bind Mount – Konfiguration & Chats sichtbar/editierbar
-    environment:
-      - OLLAMA_API_BASE_URL=http://ollama:11434
-    restart: unless-stopped
+  
   n8n:
     build:
       context: ./n8n
+      dockerfile: n8n.Dockerfile
     image: custom-n8n:latest
     container_name: n8n
     ports:
@@ -61,7 +45,7 @@ services:
   rag-upload:
     build:
       context: ./RAG
-      dockerfile: Dockerfile.upload
+      dockerfile: upload.Dockerfile
     container_name: rag-upload
     ports:
       - "8001:8001"
@@ -78,7 +62,7 @@ services:
   embedding:
     build:
       context: ./embed-service
-      dockerfile: Dockerfile.embed
+      dockerfile: embed.Dockerfile
     container_name: embedding
     ports:
       - "8002:8000"
@@ -114,9 +98,75 @@ services:
     volumes:
       - keycloak_data:/opt/keycloak/data
 
+  ollama-mistral:
+    build:
+      context: ./models
+      dockerfile: mistral.Dockerfile
+    ports:
+      - "11431:11434"
+    volumes:
+      - ollama_mistral:/root/.ollama
+    restart: unless-stopped
+
+  ollama-mixtral:
+    build:
+      context: ./models
+      dockerfile: mixtral.Dockerfile
+    ports:
+      - "11432:11434"
+    volumes:
+      - ollama_mixtral:/root/.ollama
+    restart: unless-stopped
+
+  ollama-commandr:
+    build:
+      context: ./models
+      dockerfile: commandr.Dockerfile
+    ports:
+      - "11433:11434"
+    volumes:
+      - ollama_commandr:/root/.ollama
+    restart: unless-stopped
+
+  ollama-yib:
+    build:
+      context: ./models
+      dockerfile: yib.Dockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_yib:/root/.ollama
+    restart: unless-stopped
+
+  ollama-hermes:
+    build:
+      context: ./models
+      dockerfile: hermes.Dockerfile
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_hermes:/root/.ollama
+    restart: unless-stopped
+
+  ollama-nous:
+    build:
+      context: ./models
+      dockerfile: nous.Dockerfile
+    ports:
+      - "11436:11434"
+    volumes:
+      - ollama_nous:/root/.ollama
+    restart: unless-stopped
+
 volumes:
   ollama_data:
   whisper_cache:
   caddy_data:
   caddy_config:
   keycloak_data:
+  ollama_mistral:
+  ollama_mixtral:
+  ollama_commandr:
+  ollama_yib:
+  ollama_hermes:
+  ollama_nous:
