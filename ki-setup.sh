@@ -54,6 +54,9 @@ else
   echo "✅ Benutzer '$TARGET_USER' ist in der Docker-Gruppe."
 fi
 
+echo "🔧 Richte Docker-Volume ein..."
+bash ./modules/setup-docker-volume.sh
+
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
 PROJECT_DIR="$HOME/ai-stack"
@@ -183,7 +186,25 @@ docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-
 sleep 10
 echo "🔍 Prüfe Phase 1..."
 docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" || echo "❌ Qdrant nicht erreichbar"
-echo "⬇️ Lade Modelle (Initial Pull)..."
+
+echo "⬇️ Lade Modelle direkt im Container (Ollama CLI)..."
+
+declare -A MODEL_CONTAINERS=(
+  [mistral]=ollama-mistral
+  [mixtral]=ollama-mixtral
+  [command-r]=ollama-commandr
+  [yi]=ollama-yib
+  [openhermes]=ollama-hermes
+  [nous-hermes2]=ollama-nous
+)
+
+for model in "${!MODEL_CONTAINERS[@]}"; do
+  container="${MODEL_CONTAINERS[$model]}"
+  echo "⬇️  Pull für Modell '$model' im Container '$container'..."
+  docker exec -it "$container" ollama pull "$model"
+done
+
+echo "🤖 Initialisiere Modelle mit Testprompt..."
 
 declare -A MODEL_PORTS=(
   [mistral]=11431
@@ -194,15 +215,6 @@ declare -A MODEL_PORTS=(
   [nous-hermes2]=11436
 )
 
-for model in "${!MODEL_PORTS[@]}"; do
-  port="${MODEL_PORTS[$model]}"
-  echo "⬇️  Pull für Modell '$model' auf Port $port..."
-  curl -s http://localhost:$port/api/pull \
-    -H "Content-Type: application/json" \
-    -d "{\"name\": \"$model\"}"
-done
-
-echo "🤖 Initialisiere Modelle mit Testprompt..."
 for model in "${!MODEL_PORTS[@]}"; do
   port="${MODEL_PORTS[$model]}"
   echo "🧠 Teste Modell '$model' auf Port $port ..."
