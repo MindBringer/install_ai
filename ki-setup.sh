@@ -93,10 +93,6 @@ cp -r "$SCRIPT_DIR/embed-service/." "$PROJECT_DIR/embed-service/"
 mkdir -p "$PROJECT_DIR/n8n"
 cp -r "$SCRIPT_DIR/docker/n8n/." "$PROJECT_DIR/n8n/"
 
-# Kopiere models-Dateien
-mkdir -p "$PROJECT_DIR/models"
-cp -r "$SCRIPT_DIR/docker/models/." "$PROJECT_DIR/models/"
-
 # Kopiere RAG-Dateien
 mkdir -p "$PROJECT_DIR/RAG"
 cp -r "$SCRIPT_DIR/RAG/." "$PROJECT_DIR/RAG/"

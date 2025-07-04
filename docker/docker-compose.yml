@@ -99,9 +99,6 @@ services:
       - keycloak_data:/opt/keycloak/data
 
   ollama-mistral:
-    build:
-      context: ./models
-      dockerfile: mistral.Dockerfile
     ports:
       - "11431:11434"
     volumes:
@@ -109,9 +106,6 @@ services:
     restart: unless-stopped
 
   ollama-mixtral:
-    build:
-      context: ./models
-      dockerfile: mixtral.Dockerfile
     ports:
       - "11432:11434"
     volumes:
@@ -119,9 +113,6 @@ services:
     restart: unless-stopped
 
   ollama-commandr:
-    build:
-      context: ./models
-      dockerfile: commandr.Dockerfile
     ports:
       - "11433:11434"
     volumes:
@@ -129,9 +120,6 @@ services:
     restart: unless-stopped
 
   ollama-yib:
-    build:
-      context: ./models
-      dockerfile: yib.Dockerfile
     ports:
       - "11434:11434"
     volumes:
@@ -139,9 +127,6 @@ services:
     restart: unless-stopped
 
   ollama-hermes:
-    build:
-      context: ./models
-      dockerfile: hermes.Dockerfile
     ports:
       - "11435:11434"
     volumes:
@@ -149,9 +134,6 @@ services:
     restart: unless-stopped
 
   ollama-nous:
-    build:
-      context: ./models
-      dockerfile: nous.Dockerfile
     ports:
       - "11436:11434"
     volumes:
