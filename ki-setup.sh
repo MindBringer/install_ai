@@ -183,8 +183,7 @@ docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-
 sleep 10
 echo "🔍 Prüfe Phase 1..."
 docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" || echo "❌ Qdrant nicht erreichbar"
-docker exec tester curl -fs http://open-webui:8080/ && echo "✅ WebUI erreichbar" || echo "❌ WebUI nicht erreichbar"
-echo "🤖 Initialisiere Modelle..."
+echo "⬇️ Lade Modelle (Initial Pull)..."
 
 declare -A MODEL_PORTS=(
   [mistral]=11431
@@ -195,6 +194,15 @@ declare -A MODEL_PORTS=(
   [nous-hermes2]=11436
 )
 
+for model in "${!MODEL_PORTS[@]}"; do
+  port="${MODEL_PORTS[$model]}"
+  echo "⬇️  Pull für Modell '$model' auf Port $port..."
+  curl -s http://localhost:$port/api/pull \
+    -H "Content-Type: application/json" \
+    -d "{\"name\": \"$model\"}"
+done
+
+echo "🤖 Initialisiere Modelle mit Testprompt..."
 for model in "${!MODEL_PORTS[@]}"; do
   port="${MODEL_PORTS[$model]}"
   echo "🧠 Teste Modell '$model' auf Port $port ..."
