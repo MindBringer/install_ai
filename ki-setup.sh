@@ -88,17 +88,13 @@ mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/Dockerfile" "$PROJECT_DIR/frontend-nginx/"
 cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 
-# Kopiere embed-service-Dateien
-mkdir -p "$PROJECT_DIR/embed-service"
-cp -r "$SCRIPT_DIR/embed-service/." "$PROJECT_DIR/embed-service/"
-
 # Kopiere n8n-Dateien
 mkdir -p "$PROJECT_DIR/n8n"
 cp -r "$SCRIPT_DIR/docker/n8n/." "$PROJECT_DIR/n8n/"
 
-# Kopiere RAG-Dateien
-mkdir -p "$PROJECT_DIR/RAG"
-cp -r "$SCRIPT_DIR/RAG/." "$PROJECT_DIR/RAG/"
+# Kopiere haystack-Dateien
+mkdir -p "$PROJECT_DIR/haystack"
+cp -r "$SCRIPT_DIR/docker/haystack/." "$PROJECT_DIR/haystack/"
 
 # Kopiere Frontend build
 cd "$SCRIPT_DIR/docker/Frontend"
@@ -132,16 +128,6 @@ whisper.local {
 
 api.local {
   reverse_proxy localhost:80
-  tls internal
-}
-
-auth.local {
-  reverse_proxy keycloak:8080
-  tls internal
-}
-
-rag.local {
-  reverse_proxy localhost:8001
   tls internal
 }
 
@@ -182,7 +168,7 @@ docker compose build
 
 ## Phase 1
 echo "➡️ Phase 1: qdrant, ollama mit Modellen, embedding, tester"
-docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-mixtral ollama-nous ollama-yib embedding tester
+docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-mixtral ollama-nous ollama-yib tester
 sleep 10
 echo "🔍 Prüfe Phase 1..."
 docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" || echo "❌ Qdrant nicht erreichbar"
@@ -217,33 +203,33 @@ declare -A MODEL_PORTS=(
 
 for model in "${!MODEL_PORTS[@]}"; do
   port="${MODEL_PORTS[$model]}"
-  echo "🧠 Teste Modell '$model' auf Port $port ..."
-  curl -s http://localhost:$port/api/generate \
+  echo -e "\n🧠 $model (Port $port)"
+  echo "📨 Prompt: Hallo"
+  response=$(curl -s http://localhost:$port/api/generate \
     -H "Content-Type: application/json" \
-    -d "{\"model\": \"$model\", \"prompt\": \"Hallo\", \"stream\": false}" | jq
+    -d "{\"model\": \"$model\", \"prompt\": \"Hallo\", \"stream\": false}")
+  answer=$(echo "$response" | jq -r '.response')
+  echo "📬 Antwort: $answer"
 done
 
 read -p "⏭️ Weiter mit Phase 2? [Enter]"
 
 ## Phase 2
-echo "➡️ Phase 2: rag-upload, whisper, n8n"
-docker compose up -d rag-upload whisper n8n
+echo "➡️ Phase 2: haystack, crewAI, whisper, n8n"
+docker compose up -d rag-upload whisper n8n haystack crewai
 sleep 10
 docker exec tester curl -fs http://whisper:9000/docs && echo "✅ Whisper erreichbar" || echo "❌ Whisper nicht erreichbar"
-docker exec tester curl -fs http://rag-upload:8001/ && echo "✅ Upload-API erreichbar" || echo "❌ Upload-API nicht erreichbar"
 docker exec tester curl -fs http://n8n:5678/ && echo "✅ n8n erreichbar" || echo "❌ n8n nicht erreichbar"
 read -p "⏭️ Weiter mit Phase 3? [Enter]"
 
 ## Phase 3
-echo "➡️ Phase 3: keycloak, frontend, caddy"
-docker compose up -d keycloak frontend caddy
+echo "➡️ Phase 3: frontend, caddy"
+docker compose up -d frontend caddy
 sleep 5
 echo "🌐 Zugriff über Subdomains (DNS oder /etc/hosts nötig):"
-echo " - http://chat.local         → Open WebUI"
 echo " - http://n8n.local          → n8n Workflowsystem"
 echo " - http://whisper.local/docs → Whisper ASR"
 echo " - http://ollama.local       → Ollama API"
-echo " - http://rag.local          → Upload-UI"
 echo " - http://api.local          → React Frontend"
 echo " - http://docs.local         → Filebrowser (statisch)"
 echo " - http://<Server-IP>        → statische Inhalte"

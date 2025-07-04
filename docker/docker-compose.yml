@@ -42,31 +42,7 @@ services:
     networks:
       - default
     restart: unless-stopped
-  rag-upload:
-    build:
-      context: ./RAG
-      dockerfile: upload.Dockerfile
-    container_name: rag-upload
-    ports:
-      - "8001:8001"
-    env_file:
-      - .env
-    environment:
-      - EMBEDDING_URL=http://embedding:8000/embed
-    volumes:
-      - ./data/uploads:/app/uploads         # 🔧 optional: z. B. für Logs oder persistente Uploads
-    depends_on:
-      - embedding
-      - qdrant
-    restart: unless-stopped
-  embedding:
-    build:
-      context: ./embed-service
-      dockerfile: embed.Dockerfile
-    container_name: embedding
-    ports:
-      - "8002:8000"
-    restart: unless-stopped
+
   caddy:
     image: caddy:latest
     container_name: caddy
@@ -84,19 +60,37 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - rag-upload
+      - haystack
     restart: unless-stopped
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0
-    command: start --optimized
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: adminpass
+  haystack:
+    build: ./haystack
     ports:
-      - "8081:8080"
+      - "8001:8001"
+    environment:
+      - QDRANT_HOST=qdrant
+      - OLLAMA_HOST=http://ollama:11434
+      - DEFAULT_MODEL=mistral 
+    depends_on:
+      - qdrant
+      - ollama
+    restart: unless-stopped
     volumes:
-      - keycloak_data:/opt/keycloak/data
+      - ./haystack:/app
+      - ./haystack/uploads:/app/uploads       # Benutzer-Uploads (PDF, Audio, etc.)
+      - ./haystack/data:/app/data             # temporär verarbeitete Dateien
+      - ./haystack/config:/app/config         # Pipeline-, Modell-, API-Konfiguration
+      - ./haystack/logs:/app/logs             
+
+  crewai:
+    build: ./crewai
+    depends_on:
+      - haystack
+    restart: unless-stopped
+    volumes:
+      - ./crewai:/app
+      - ./crewai/logs:/app/logs               # Agentenprotokolle
+      - ./crewai/config:/app/config 
 
   ollama-mistral:
     image: ollama/ollama:latest
@@ -150,7 +144,6 @@ volumes:
   whisper_cache:
   caddy_data:
   caddy_config:
-  keycloak_data:
   ollama_mistral:
   ollama_mixtral:
   ollama_commandr:

@@ -1,0 +1,6 @@
+farm-haystack[preprocessing,faiss]==1.22.0
+pdfplumber
+python-docx
+tiktoken
+uvicorn
+fastapi
