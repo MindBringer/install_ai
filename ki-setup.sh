@@ -178,8 +178,8 @@ echo "[7/8] 🚀 Starte Container phasenweise..."
 docker compose build
 
 ## Phase 1
-echo "➡️ Phase 1: qdrant, ollama mit Modellen, embedding, open-webui, tester"
-docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-mixtral ollama-nous ollama-yib embedding open-webui tester
+echo "➡️ Phase 1: qdrant, ollama mit Modellen, embedding, tester"
+docker compose up -d qdrant ollama-commandr ollama-hermes ollama-mistral ollama-mixtral ollama-nous ollama-yib embedding tester
 sleep 10
 echo "🔍 Prüfe Phase 1..."
 docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" || echo "❌ Qdrant nicht erreichbar"
