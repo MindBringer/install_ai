@@ -57,7 +57,7 @@ fi
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
 PROJECT_DIR="$HOME/ai-stack"
-mkdir -p "$PROJECT_DIR/RAG" "$PROJECT_DIR/embed-service" "$PROJECT_DIR/public" "$PROJECT_DIR/frontend-nginx/dist" "$PROJECT_DIR/n8n" "$PROJECT_DIR/keycloak"
+mkdir -p "$PROJECT_DIR/keycloak"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
@@ -89,6 +89,14 @@ cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 mkdir -p "$PROJECT_DIR/embed-service"
 cp -r "$SCRIPT_DIR/embed-service/." "$PROJECT_DIR/embed-service/"
 
+# Kopiere n8n-Dateien
+mkdir -p "$PROJECT_DIR/n8n"
+cp -r "$SCRIPT_DIR/docker/n8n/." "$PROJECT_DIR/n8n/"
+
+# Kopiere models-Dateien
+mkdir -p "$PROJECT_DIR/models"
+cp -r "$SCRIPT_DIR/docker/models/." "$PROJECT_DIR/models/"
+
 # Kopiere RAG-Dateien
 mkdir -p "$PROJECT_DIR/RAG"
 cp -r "$SCRIPT_DIR/RAG/." "$PROJECT_DIR/RAG/"
@@ -109,7 +117,7 @@ cat <<EOF > "$PROJECT_DIR/Caddyfile"
 }
 
 chat.local {
-  reverse_proxy localhost:8080
+  reverse_proxy localhost:11431
   tls internal
 }
 
@@ -120,11 +128,6 @@ n8n.local {
 
 whisper.local {
   reverse_proxy localhost:9000
-  tls internal
-}
-
-ollama.local {
-  reverse_proxy localhost:11434
   tls internal
 }
 
