@@ -1,0 +1,105 @@
+{
+  "name": "Upload to Whisper to LLM",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "options": {}
+      },
+      "id": "Webhook",
+      "name": "Upload Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://haystack:8001/transcribe",
+        "jsonParameters": false,
+        "options": {},
+        "bodyContentType": "form-data",
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "file",
+              "value": "={{$binary.data}}"
+            }
+          ]
+        }
+      },
+      "id": "WhisperX",
+      "name": "Transcribe Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://haystack:8001/query",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\"question\": \"={{$json.result}}\", \"model\": \"mistral\"}"
+      },
+      "id": "QueryLLM",
+      "name": "Query LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@example.com",
+        "toEmail": "recipient@example.com",
+        "subject": "Antwort auf Transkription",
+        "text": "={{$json.answer}}"
+      },
+      "id": "SendEmail",
+      "name": "Send Result via Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Upload Webhook": {
+      "main": [
+        [
+          "WhisperX"
+        ]
+      ]
+    },
+    "WhisperX": {
+      "main": [
+        [
+          "QueryLLM"
+        ]
+      ]
+    },
+    "QueryLLM": {
+      "main": [
+        [
+          "SendEmail"
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": [],
+  "id": "1"
+}
