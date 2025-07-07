@@ -57,7 +57,7 @@ fi
 echo "🔧 Richte Docker-Volume ein..."
 DOCKER_LV_NAME="docker"
 DOCKER_MOUNT="/docker"
-VG_NAME=$(vgs --noheadings -o vg_name | awk '{print $1}')
+VG_NAME=$(sudo vgs --noheadings -o vg_name | awk '{print $1}')
 LV_PATH="/dev/${VG_NAME}/${DOCKER_LV_NAME}"
 
 # Prüfen, ob Volume existiert
