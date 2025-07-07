@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+requests
+# weitere Abhängigkeiten deiner App
