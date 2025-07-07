@@ -101,7 +101,7 @@ mkdir -p "$PROJECT_DIR/crewai"
 cp -r "$SCRIPT_DIR/docker/crewai/." "$PROJECT_DIR/crewai/"
 
 # Kopiere Frontend build
-cd "$SCRIPT_DIR/docker/Frontend"
+cd "$SCRIPT_DIR/docker/frontend"
 [ ! -d node_modules ] && npm install
 npm run build
 cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
@@ -220,7 +220,7 @@ read -p "⏭️ Weiter mit Phase 2? [Enter]"
 
 ## Phase 2
 echo "➡️ Phase 2: haystack, crewAI, whisper, n8n"
-docker compose up -d rag-upload whisper n8n haystack crewai
+docker compose up -d whisper n8n haystack crewai
 sleep 10
 docker exec tester curl -fs http://whisper:9000/docs && echo "✅ Whisper erreichbar" || echo "❌ Whisper nicht erreichbar"
 docker exec tester curl -fs http://n8n:5678/ && echo "✅ n8n erreichbar" || echo "❌ n8n nicht erreichbar"

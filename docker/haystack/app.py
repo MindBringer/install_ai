@@ -4,8 +4,10 @@ from haystack.document_stores import QdrantDocumentStore
 from haystack.nodes import EmbeddingRetriever, PDFToTextConverter, TextConverter, DocxToTextConverter
 from haystack import Document
 from utils.token_chunker import split_text_by_tokens
+from pathlib import Path
 import os, shutil, requests, tempfile
 import subprocess
+import json
 
 app = FastAPI()
 
@@ -63,25 +65,37 @@ async def upload_file(file: UploadFile = File(...)):
 
 class Query(BaseModel):
     question: str
-    model: str = "mistral"
+    model: str = "mistral" # Standardmodell ist "mistral"
 
 @app.post("/query")
 async def query_question(payload: Query):
     docs = retriever.retrieve(payload.question, top_k=5)
     context = "\n---\n".join([doc.content for doc in docs])
-    prompt = f"Beantworte auf Basis dieser Informationen:
+    prompt = f"""Beantworte auf Basis dieser Informationen:
 {context}
 
-Frage: {payload.question}"
+Frage: {payload.question}
+""" # Wichtig: Hier wurde das Prompt-Format korrigiert, es war zuvor nicht korrekt eingerückt.
+
+    # Dynamische Auswahl des Ollama-Hosts basierend auf payload.model
+    # Die Servicenamen im Docker-Compose sind z.B. "ollama-mistral", "ollama-mixtral" etc.
+    # Wir bilden den Ollama-Hostnamen, indem wir "ollama-" voranstellen.
+    ollama_service_name = f"ollama-{payload.model}"
+    ollama_url = f"http://{ollama_service_name}:11434/api/generate"
 
     # Anfrage an Ollama senden
     try:
         res = requests.post(
-            os.getenv("OLLAMA_HOST", "http://ollama:11434") + "/api/generate",
+            ollama_url, # Verwende den dynamisch erzeugten Ollama-URL
             json={"model": payload.model, "prompt": prompt}
         )
+        res.raise_for_status() # Löst einen HTTPError für schlechte Antworten (4xx oder 5xx) aus
         llm_answer = res.json().get("response", "")
+    except requests.exceptions.RequestException as e:
+        # Hier spezifischere Fehlerbehandlung für requests-Fehler
+        llm_answer = f"Fehler bei der Kommunikation mit Ollama ({ollama_service_name}): {e}"
     except Exception as e:
+        # Allgemeine Fehlerbehandlung
         llm_answer = f"Ollama-Fehler: {e}"
 
     return {
@@ -98,24 +112,30 @@ async def crew_ask(q: Query):
         return {"error": f"CrewAI nicht erreichbar: {e}"}
 
 @app.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
-    tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-    shutil.copyfileobj(file.file, tmp_wav)
-    tmp_wav.close()
+async def transcribe_audio(file: UploadFile = File(...), lang: str = "de"):
+    """
+    Transcribes an audio file by sending it to the WhisperX API service.
+    """
+    # Temporäre Datei speichern (nicht mehr nötig, wenn direkt an WhisperX API gesendet wird)
+    # Stattdessen direkt die Datei an den WhisperX-Dienst streamen
+    
+    # URL des WhisperX-Dienstes im Docker-Netzwerk
+    # Da der Dienst 'whisperx' heißt und Port 8080 exponiert, ist dies die interne URL
+    WHISPERX_API_URL = "http://whisperx:8080/transcribe"
 
-    # WhisperX + Diarization (lokal ausführen via CLI)
-    cmd = [
-        "whisperx",
-        tmp_wav.name,
-        "--diarize",
-        "--hf_token", os.getenv("HF_TOKEN", ""),
-        "--output_dir", UPLOAD_DIR,
-        "--output_format", "json"
-    ]
     try:
-        subprocess.run(cmd, check=True)
-        json_path = Path(UPLOAD_DIR) / (Path(tmp_wav.name).stem + ".json")
-        with open(json_path, "r") as f:
-            return {"status": "ok", "diarized": True, "result": f.read()}
+        # Sende die Audiodatei als Multipart-Form-Data an den WhisperX-Dienst
+        files = {'file': (file.filename, file.file, file.content_type)}
+        params = {'lang': lang} # Sprachparameter übergeben
+
+        # Timeout für die Anfrage, da Transkription lange dauern kann
+        response = requests.post(WHISPERX_API_URL, files=files, params=params, timeout=600) # 10 Minuten Timeout
+        response.raise_for_status() # Löst HTTPError für 4xx/5xx Antworten aus
+
+        result = response.json()
+        return result
+
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Fehler bei der Kommunikation mit WhisperX API: {e}")
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=f"Transkriptionsanfrage fehlgeschlagen: {e}")

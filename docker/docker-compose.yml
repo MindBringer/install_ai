@@ -24,15 +24,19 @@ services:
     restart: unless-stopped
 
   whisperx:
-    build:
-      context: ./whisperx
-      dockerfile: whisperx.Dockerfile
-    container_name: whisperx
-    volumes:
-      - ./data/whisperx:/data                 # optionaler Mount für Audio
-    env_file:
-      - .env                 # dein HF-Token (z. B. in .env)
+    build: ./whisperx
+    # Port 8080 für die FastAPI-Anwendung freigeben
+    ports:
+      - "8080:8080" # Der interne Port 8080 wird extern auf 8080 gemappt
+    environment:
+      # Stellen Sie sicher, dass HF_TOKEN hier richtig aus Ihrer .env gelesen wird
+      - HF_TOKEN=${WHISPER_HF_TOKEN}
     restart: unless-stopped
+    volumes:
+      - ./whisperx:/app
+      # Optional: Ein Volume für WhisperX-Modell-Caches, damit diese nicht bei jedem Rebuild neu heruntergeladen werden
+      - whisperx_models:/root/.cache/whisperx
+      - whisperx_models:/root/.cache/huggingface/hub # Für Hugging Face Modelle
 
   #whisper:
   #  image: onerahmet/openai-whisper-asr-webservice:latest
@@ -81,11 +85,15 @@ services:
       - "8001:8001"
     environment:
       - QDRANT_HOST=qdrant
-      - OLLAMA_HOST=http://ollama:11434
       - DEFAULT_MODEL=mistral 
     depends_on:
       - qdrant
-      - ollama
+      - ollama-mistral
+      - ollama-mixtral
+      - ollama-commandr
+      - ollama-yib
+      - ollama-hermes
+      - ollama-nous
     restart: unless-stopped
     volumes:
       - ./haystack:/app
