@@ -21,17 +21,15 @@ fi
 # Mountpunkt erstellen und eintragen
 sudo mkdir -p "$DOCKER_DATA_DIR"
 if ! grep -q "${DOCKER_MOUNT}" /etc/fstab; then
-    USER_UID=$(id -u "${SUDO_USER:-$USER}")
-    USER_GID=$(id -g "${SUDO_USER:-$USER}")
-    echo "/dev/${VG_NAME}/${DOCKER_LV_NAME} ${DOCKER_MOUNT} ext4 defaults,uid=${USER_UID},gid=${USER_GID} 0 2" | sudo tee -a /etc/fstab
+    echo "/dev/${VG_NAME}/${DOCKER_LV_NAME} ${DOCKER_MOUNT} ext4 defaults 0 2" | sudo tee -a /etc/fstab
 fi
 
 echo "⏳ Mounten..."
 sudo mount "${DOCKER_MOUNT}"
 # Setze Besitzrechte für normalen Benutzer
-USER_UID=$(id -u "")
-USER_GID=$(id -g "")
-sudo chown -R : ""
+USER_UID=$(id -u "${SUDO_USER:-$USER}")
+USER_GID=$(id -g "${SUDO_USER:-$USER}")
+sudo chown -R "${USER_UID}:${USER_GID}" "${DOCKER_MOUNT}"
 
 # Docker stoppen und Daten verschieben
 echo "🛑 Stoppe Docker..."
