@@ -55,7 +55,31 @@ else
 fi
 
 echo "🔧 Richte Docker-Volume ein..."
-sudo bash ./modules/setup-docker-volume.sh
+DOCKER_LV_NAME="docker"
+DOCKER_MOUNT="/docker"
+VG_NAME=$(vgs --noheadings -o vg_name | awk '{print $1}')
+LV_PATH="/dev/${VG_NAME}/${DOCKER_LV_NAME}"
+
+# Prüfen, ob Volume existiert
+if sudo lvdisplay "$LV_PATH" >/dev/null 2>&1; then
+    echo "📦 LVM-Volume '$DOCKER_LV_NAME' existiert bereits."
+
+    # Prüfen, ob gemountet
+    if mountpoint -q "$DOCKER_MOUNT"; then
+        echo "✅ Volume ist bereits gemountet unter $DOCKER_MOUNT – Setup wird übersprungen."
+    else
+        echo "⚠️ Volume ist nicht gemountet – mounte erneut..."
+        sudo mkdir -p "$DOCKER_MOUNT"
+        sudo mount "$LV_PATH" "$DOCKER_MOUNT"
+        USER_UID=$(id -u "${SUDO_USER:-$USER}")
+        USER_GID=$(id -g "${SUDO_USER:-$USER}")
+        sudo chown -R "${USER_UID}:${USER_GID}" "${DOCKER_MOUNT}"
+    fi
+
+else
+    echo "📦 Erstelle neues Docker-Volume über LVM..."
+    sudo bash ./modules/setup-docker-volume.sh
+fi
 
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
