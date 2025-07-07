@@ -116,6 +116,10 @@ cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 mkdir -p "$PROJECT_DIR/n8n"
 cp -r "$SCRIPT_DIR/docker/n8n/." "$PROJECT_DIR/n8n/"
 
+# Kopiere whisperX-Dateien
+mkdir -p "$PROJECT_DIR/whisperx"
+cp -r "$SCRIPT_DIR/docker/whisperx/." "$PROJECT_DIR/whisperx/"
+
 # Kopiere haystack-Dateien
 mkdir -p "$PROJECT_DIR/haystack"
 cp -r "$SCRIPT_DIR/docker/haystack/." "$PROJECT_DIR/haystack/"
