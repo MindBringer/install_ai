@@ -55,7 +55,7 @@ else
 fi
 
 echo "🔧 Richte Docker-Volume ein..."
-bash ./modules/setup-docker-volume.sh
+sudo bash ./modules/setup-docker-volume.sh
 
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
