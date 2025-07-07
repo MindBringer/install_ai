@@ -207,7 +207,7 @@ docker exec tester curl -fs http://qdrant:6333/ && echo "✅ Qdrant erreichbar" 
 
 echo "⬇️ Lade Modelle direkt im Container (Ollama CLI)..."
 
-declare -A MODEL_CONTAINERS=(
+declare -A MODEL_SERVICE_NAMES=(
   [mistral]=ollama-mistral
   [mixtral]=ollama-mixtral
   [command-r]=ollama-commandr
@@ -216,10 +216,17 @@ declare -A MODEL_CONTAINERS=(
   [nous-hermes2]=ollama-nous
 )
 
-for model in "${!MODEL_CONTAINERS[@]}"; do
-  container="${MODEL_CONTAINERS[$model]}"
+for model in "${!MODEL_SERVICE_NAMES[@]}"; do
+  service_name="${MODEL_SERVICE_NAMES[$model]}"
+  container=$(docker ps --format '{{.Names}}' | grep "$service_name" | head -n1)
+
+  if [[ -z "$container" ]]; then
+    echo "⚠️  Container für '$service_name' nicht gefunden – überspringe '$model'"
+    continue
+  fi
+
   echo "⬇️  Pull für Modell '$model' im Container '$container'..."
-  docker exec -it "$container" ollama pull "$model"
+  docker exec "$container" ollama pull "$model"
 done
 
 echo "🤖 Initialisiere Modelle mit Testprompt..."
@@ -240,7 +247,7 @@ for model in "${!MODEL_PORTS[@]}"; do
   response=$(curl -s http://localhost:$port/api/generate \
     -H "Content-Type: application/json" \
     -d "{\"model\": \"$model\", \"prompt\": \"Hallo\", \"stream\": false}")
-  answer=$(echo "$response" | jq -r '.response')
+  answer=$(echo "$response" | jq -r '.response // "❌ Keine Antwort (Fehler?)"')
   echo "📬 Antwort: $answer"
 done
 
