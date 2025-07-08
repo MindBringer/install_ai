@@ -90,4 +90,5 @@ while true; do
       echo "❌ Ungültige Eingabe."
       ;;
   esac
-  echo
+  echo ""
+done
