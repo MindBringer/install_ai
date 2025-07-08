@@ -85,10 +85,10 @@ done
 read -p "⏭️ Weiter mit Phase 2? [Enter]"
 
 ## Phase 2
-echo "➡️ Phase 2: haystack, crewAI, whisper, n8n"
-docker compose up -d whisper n8n haystack crewai
+echo "➡️ Phase 2: haystack, crewAI, whisperx, n8n"
+docker compose up -d whisperx n8n haystack crewai
 sleep 10
-docker exec tester curl -fs http://whisper:9000/docs && echo "✅ Whisper erreichbar" || echo "❌ Whisper nicht erreichbar"
+docker exec tester curl -fs http://whisperx:9000/docs && echo "✅ Whisper erreichbar" || echo "❌ Whisper nicht erreichbar"
 docker exec tester curl -fs http://n8n:5678/ && echo "✅ n8n erreichbar" || echo "❌ n8n nicht erreichbar"
 read -p "⏭️ Weiter mit Phase 3? [Enter]"
 
