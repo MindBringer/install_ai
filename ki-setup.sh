@@ -251,6 +251,57 @@ for model in "${!MODEL_PORTS[@]}"; do
   echo "📬 Antwort: $answer"
 done
 
+# Model-Prüfroutinen:
+# 🔍 Holt dynamisch den echten Container-Namen zu einem Ollama-Service
+get_container_name() {
+  local service_pattern="$1"
+  docker ps --format '{{.Names}}' | grep "$service_pattern" | head -n1
+}
+
+# ❌ Container stoppen & löschen (falls vorhanden)
+stop_and_remove_container() {
+  local container
+  container=$(get_container_name "$1")
+  if [ -n "$container" ]; then
+    echo "🛑 Stoppe und entferne Container: $container"
+    docker stop "$container" >/dev/null 2>&1 || true
+    docker rm "$container" >/dev/null 2>&1 || true
+  else
+    echo "ℹ️ Kein laufender Container zu '$1' gefunden."
+  fi
+}
+
+# 🔁 Neustarten (stop/start)
+restart_container() {
+  local container
+  container=$(get_container_name "$1")
+  if [ -n "$container" ]; then
+    echo "🔁 Neustart von Container: $container"
+    docker restart "$container"
+  else
+    echo "⚠️ Container '$1' nicht gefunden oder nicht laufend."
+  fi
+}
+
+# ❤️ Health-Check via curl
+check_model_api() {
+  local model="$1"
+  local port="$2"
+  local health_url="http://localhost:${port}/api/generate"
+
+  echo "📡 Prüfe Erreichbarkeit von $model auf Port $port..."
+  response=$(curl -s -X POST "$health_url" \
+    -H "Content-Type: application/json" \
+    -d "{\"model\": \"$model\", \"prompt\": \"ping\", \"stream\": false}")
+
+  if echo "$response" | jq -e .response >/dev/null 2>&1; then
+    echo "✅ Modell '$model' auf Port $port ist erreichbar"
+  else
+    echo "❌ Keine Antwort von '$model' (Port $port)"
+  fi
+}
+
+
 read -p "⏭️ Weiter mit Phase 2? [Enter]"
 
 ## Phase 2
