@@ -11,7 +11,7 @@ check_command() {
     echo "$cmd_output"
     return 1
   fi
-}#!/bin/bash
+}
 # Container phasenweise starten, Modelle prüfen...
 echo "[MODUL] start-container"
 ### === [7/8] Container phasenweise starten ===

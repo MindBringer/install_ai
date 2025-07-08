@@ -11,7 +11,7 @@ check_command() {
     echo "$cmd_output"
     return 1
   fi
-}#!/bin/bash
+}
 # Systemvorbereitung: Tools, Docker, Volume...
 echo "[MODUL] setup-system"
 

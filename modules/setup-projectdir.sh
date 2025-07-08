@@ -11,7 +11,7 @@ check_command() {
     echo "$cmd_output"
     return 1
   fi
-}#!/bin/bash
+}
 # Projektverzeichnis, .env, Dateikopien...
 echo "[MODUL] setup-projectdir"
 ### === [3/8] Verzeichnisse & Dateien ===
