@@ -22,7 +22,7 @@ fi
 echo ""
 echo "🔹 2. Teste API über LAN via TLS und api.local (Caddy Reverse Proxy)"
 echo "   ➤ $HTTPS_URL"
-if response=$(curl $CURL_OPTS -X POST "$HTTPS_URL" -H "Content-Type: application/json" -d '{"prompt":"ping"}' --insecure 2>&1); then
+if response=$(curl $CURL_OPTS -X POST -H "$HTTPS_URL" -H "Content-Type: application/json" -d '{"prompt":"ping"}' --insecure 2>&1); then
   echo "✅ LAN (https://api.local) OK"
 else
   echo "❌ LAN (https://api.local) FEHLER:"
