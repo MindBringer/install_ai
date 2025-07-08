@@ -1,17 +1,4 @@
 #!/bin/bash
-set -euo pipefail
-
-# Funktion zur Prüfung von Kommandos
-check_command() {
-  local cmd_output
-  if cmd_output="$($@ 2>&1)"; then
-    echo "✅ Befehl erfolgreich: $*"
-  else
-    echo "❌ Fehler: $*"
-    echo "$cmd_output"
-    return 1
-  fi
-}
 # Projektverzeichnis, .env, Dateikopien...
 echo "[MODUL] setup-projectdir"
 ### === [3/8] Verzeichnisse & Dateien ===

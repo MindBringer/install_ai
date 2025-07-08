@@ -1,6 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
+# Funktion zur Prüfung von Kommandos
+check_command() {
+  local cmd_output
+  if cmd_output="$($@ 2>&1)"; then
+    echo "✅ Befehl erfolgreich: $*"
+  else
+    echo "❌ Fehler: $*"
+    echo "$cmd_output"
+    return 1
+  fi
+}
+
 # === [Hauptmenü] ===
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -11,6 +23,7 @@ show_menu() {
   echo "3) Containerstart (phasenweise)"
   echo "4) Wartung & Tools"
   echo "5) Komplettinstallation (alles)"
+  echo "6) Update (System, Tools, Container)"
   echo "q) Beenden"
   echo -n "> Auswahl: "
 }
@@ -36,6 +49,9 @@ while true; do
       bash "$SCRIPT_DIR/modules/setup-projectdir.sh"
       bash "$SCRIPT_DIR/modules/start-container.sh"
       bash "$SCRIPT_DIR/modules/maintenance.sh"
+      ;;
+    6)
+      bash "$SCRIPT_DIR/modules/update.sh"
       ;;
     q|Q)
       echo "👋 Beende Setup."
