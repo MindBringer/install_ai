@@ -42,7 +42,8 @@ echo ""
 
 # 4. CORS / .env Prüfung
 echo "🔹 4. CORS-Test (Frontend)"
-env_path="../.env"
+PROJECT_DIR="$HOME/ai-stack"
+env_path="/$PROJECT_DIR/.env"
 if [[ -f "$env_path" ]]; then
   api_env=$(grep VITE_API_BASE_URL "$env_path" | cut -d= -f2-)
   echo "📦 .env Eintrag: VITE_API_BASE_URL=$api_env"
