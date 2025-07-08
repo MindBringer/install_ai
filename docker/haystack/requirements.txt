@@ -1,4 +1,6 @@
-farm-haystack[preprocessing,qdrant]==1.21.2
+farm-haystack[preprocessing]==1.22.1
+qdrant-haystack>=1.0.0
+
 pdfplumber
 python-docx
 tiktoken

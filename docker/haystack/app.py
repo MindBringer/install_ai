@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from haystack.document_stores import QdrantDocumentStore
+from qdrant_haystack.document_stores import QdrantDocumentStore
 from haystack.nodes import EmbeddingRetriever, PDFToTextConverter, TextConverter, DocxToTextConverter
 from haystack import Document
 from utils.token_chunker import split_text_by_tokens
