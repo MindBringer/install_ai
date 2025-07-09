@@ -35,7 +35,9 @@ mkdir -p "$PROJECT_DIR/frontend"
 cp -r "$SCRIPT_DIR/docker/frontend/." "$PROJECT_DIR/frontend/"
 [ ! -d node_modules ] && npm install
 npm run build
-cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
+echo "📦 Kopiere dist/ in Build-Image-Verzeichnis..."
+rm -rf "$SCRIPT_DIR/docker/frontend-nginx/dist"
+cp -r "$PROJECT_DIR/frontend/dist" "$SCRIPT_DIR/docker/frontend-nginx/dist"
 
 # Kopiere n8n-Dateien
 mkdir -p "$PROJECT_DIR/n8n"
