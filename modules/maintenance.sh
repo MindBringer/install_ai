@@ -31,48 +31,69 @@ function cleanup_menu() {
         break
         ;;
       2)
-        read -rp "PROJECT_DIR '$PROJECT_DIR' wirklich löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        sudo rm -rf "$PROJECT_DIR"
-        echo "PROJECT_DIR gelöscht."
+        if [[ -d "$PROJECT_DIR" ]]; then
+          read -rp "PROJECT_DIR '$PROJECT_DIR' wirklich löschen? (y/N): " confirm
+          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+          sudo rm -rf "$PROJECT_DIR"
+          echo "PROJECT_DIR gelöscht."
+          break
+        else
+          echo "ℹ️ PROJECT_DIR '$PROJECT_DIR' existiert nicht – nichts zu tun."
+        fi
         break
         ;;
       3)
-        read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        sudo lvremove -f "$LVM_VOLUME"
-        echo "LVM-Volume gelöscht."
+        if sudo lvdisplay "$LVM_VOLUME" >/dev/null 2>&1; then
+          read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
+          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+          sudo lvremove -f "$LVM_VOLUME"
+          echo "LVM-Volume gelöscht."
+          break
+        else
+          echo "ℹ️ LVM-Volume '$LVM_VOLUME' nicht vorhanden oder nicht aktiv."
+        fi
         break
         ;;
       4)
-        read -rp "Alle Docker-Container stoppen und löschen (Modelle bleiben)? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        docker compose -f "$COMPOSE_FILE" down
-        echo "Docker-Container gestoppt und gelöscht."
+        if [[ -f "$COMPOSE_FILE" ]]; then
+          read -rp "Alle Docker-Container stoppen und löschen (Modelle bleiben)? (y/N): " confirm
+          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+          docker compose -f "$COMPOSE_FILE" down
+          echo "Docker-Container gestoppt und gelöscht."
+          break
+        else
+          echo "⚠️ Kein docker-compose.yml gefunden unter $COMPOSE_FILE – Container nicht gestoppt."
+        fi
         break
         ;;
       5)
-        read -rp "Alle Nicht-Volume-Daten in '$PROJECT_DIR' löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+        if [[ -d "$PROJECT_DIR" ]]; then
+          read -rp "Alle Nicht-Volume-Daten in '$PROJECT_DIR' löschen? (y/N): " confirm
+          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
 
-        keep_paths=(
-          "$PROJECT_DIR/data"
-          "$PROJECT_DIR/volumes"
-          "$PROJECT_DIR/models"
-        )
+          keep_paths=(
+           "$PROJECT_DIR/data"
+           "$PROJECT_DIR/volumes"
+           "$PROJECT_DIR/models"
+          )
 
-        echo "Lösche alle Dateien in $PROJECT_DIR außer Volumes..."
-        shopt -s dotglob
-        for item in "$PROJECT_DIR"/*; do
-          skip=false
-          for keep in "${keep_paths[@]}"; do
-            [[ "$item" == "$keep" ]] && skip=true
-          done
-          $skip || sudo rm -rf "$item"
-        done
-        shopt -u dotglob
+         echo "Lösche alle Dateien in $PROJECT_DIR außer Volumes..."
+         shopt -s dotglob
+         for item in "$PROJECT_DIR"/*; do
+           skip=false
+           for keep in "${keep_paths[@]}"; do
+             [[ "$item" == "$keep" ]] && skip=true
+           done
+           $skip || sudo rm -rf "$item"
+         done
+         shopt -u dotglob
 
-        echo "Nicht-Volume-Daten gelöscht."
+          echo "Nicht-Volume-Daten gelöscht."
+         break
+        
+        else
+          echo "ℹ️ PROJECT_DIR '$PROJECT_DIR' existiert nicht – nichts zu tun."
+        fi
         break
         ;;
       6)
