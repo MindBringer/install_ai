@@ -1,4 +1,17 @@
 #!/bin/bash
+set -euo pipefail
+
+# Funktion zur Prüfung von Kommandos
+check_command() {
+  local cmd_output
+  if cmd_output="$($@ 2>&1)"; then
+    echo "✅ Befehl erfolgreich: $*"
+  else
+    echo "❌ Fehler: $*"
+    echo "$cmd_output"
+    return 1
+  fi
+}
 
 # Cleanup- und Wartungsfunktionen für AI-Stack
 function cleanup_menu() {

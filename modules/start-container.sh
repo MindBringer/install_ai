@@ -1,4 +1,18 @@
 #!/bin/bash
+set -euo pipefail
+
+# Funktion zur Prüfung von Kommandos
+check_command() {
+  local cmd_output
+  if cmd_output="$($@ 2>&1)"; then
+    echo "✅ Befehl erfolgreich: $*"
+  else
+    echo "❌ Fehler: $*"
+    echo "$cmd_output"
+    return 1
+  fi
+}
+
 # Container phasenweise starten, Modelle prüfen...
 echo "[MODUL] start-container"
 ### === [7/8] Container phasenweise starten ===
