@@ -49,6 +49,7 @@ function cleanup_menu() {
 
           if [[ -n "$MOUNT_POINT" ]]; then
             echo "📛 Volume ist gemountet unter $MOUNT_POINT – versuche unmount..."
+            sudo systemctl stop docker
             sudo umount "$MOUNT_POINT" || {
               echo "❌ Konnte $MOUNT_POINT nicht aushängen. Abbruch."
               return
