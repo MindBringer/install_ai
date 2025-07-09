@@ -4,7 +4,11 @@
 function cleanup_menu() {
   # Sicherstellen, dass wichtige Variablen vorhanden sind
   COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
-  LVM_VOLUME="${LVM_VOLUME:-/dev/vg_ai/lv_ai}"
+  LVM_VOLUME="${VOLUME_DEVICE:-}"
+  if [[ -z "$LVM_VOLUME" ]]; then
+    echo "❌ Kein LVM-Volume definiert (VOLUME_DEVICE fehlt)."
+    return
+  fi
 
   PS3="Bitte Bereinigungsoption wählen: "
   options=(
