@@ -21,21 +21,21 @@ function cleanup_menu() {
       1)
         read -rp "SCRIPT_DIR '$SCRIPT_DIR' wirklich löschen? (y/N): " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        rm -rf "$SCRIPT_DIR"
+        sudo rm -rf "$SCRIPT_DIR"
         echo "SCRIPT_DIR gelöscht."
         break
         ;;
       2)
         read -rp "PROJECT_DIR '$PROJECT_DIR' wirklich löschen? (y/N): " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        rm -rf "$PROJECT_DIR"
+        sudo rm -rf "$PROJECT_DIR"
         echo "PROJECT_DIR gelöscht."
         break
         ;;
       3)
         read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        lvremove -f "$LVM_VOLUME"
+        sudo lvremove -f "$LVM_VOLUME"
         echo "LVM-Volume gelöscht."
         break
         ;;
@@ -63,7 +63,7 @@ function cleanup_menu() {
           for keep in "${keep_paths[@]}"; do
             [[ "$item" == "$keep" ]] && skip=true
           done
-          $skip || rm -rf "$item"
+          $skip || sudo rm -rf "$item"
         done
         shopt -u dotglob
 
