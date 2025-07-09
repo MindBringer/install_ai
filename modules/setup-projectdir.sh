@@ -30,6 +30,13 @@ mkdir -p "$PROJECT_DIR/frontend-nginx"
 cp "$SCRIPT_DIR/docker/frontend-nginx/Dockerfile" "$PROJECT_DIR/frontend-nginx/"
 cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 
+# Kopiere frontend build
+mkdir -p "$PROJECT_DIR/frontend"
+cp -r "$SCRIPT_DIR/docker/frontend/." "$PROJECT_DIR/frontend/"
+[ ! -d node_modules ] && npm install
+npm run build
+cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
+
 # Kopiere n8n-Dateien
 mkdir -p "$PROJECT_DIR/n8n"
 cp -r "$SCRIPT_DIR/docker/n8n/." "$PROJECT_DIR/n8n/"
@@ -45,12 +52,6 @@ cp -r "$SCRIPT_DIR/docker/haystack/." "$PROJECT_DIR/haystack/"
 # Kopiere crewAI-Dateien
 mkdir -p "$PROJECT_DIR/crewai"
 cp -r "$SCRIPT_DIR/docker/crewai/." "$PROJECT_DIR/crewai/"
-
-# Kopiere Frontend build
-cd "$SCRIPT_DIR/docker/frontend"
-[ ! -d node_modules ] && npm install
-npm run build
-cp -r dist/* "$PROJECT_DIR/frontend-nginx/dist/"
 
 ### === [5/8] 🌐 Erzeuge Caddyfile ===
 echo "[5/8] 🌐 Erzeuge Caddyfile für Subdomain-Reverse-Proxy..."
