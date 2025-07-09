@@ -44,13 +44,23 @@ function cleanup_menu() {
         ;;
       3)
         if sudo lvdisplay "$LVM_VOLUME" >/dev/null 2>&1; then
+          # Mount-Punkt ermitteln (z. B. /docker oder /mnt/ai-project)
+          MOUNT_POINT=$(findmnt -n -o TARGET "$LVM_VOLUME")
+
+          if [[ -n "$MOUNT_POINT" ]]; then
+            echo "📛 Volume ist gemountet unter $MOUNT_POINT – versuche unmount..."
+            sudo umount "$MOUNT_POINT" || {
+              echo "❌ Konnte $MOUNT_POINT nicht aushängen. Abbruch."
+              return
+            }
+          fi
+
           read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
-          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+          [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; return; }
           sudo lvremove -f "$LVM_VOLUME"
-          echo "LVM-Volume gelöscht."
-          break
+          echo "✔️  LVM-Volume gelöscht."
         else
-          echo "ℹ️ LVM-Volume '$LVM_VOLUME' nicht vorhanden oder nicht aktiv."
+          echo "ℹ️  Volume '$LVM_VOLUME' existiert nicht oder ist nicht aktiv."
         fi
         break
         ;;
