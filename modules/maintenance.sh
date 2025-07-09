@@ -1,4 +1,84 @@
 #!/bin/bash
+
+# Cleanup- und Wartungsfunktionen für AI-Stack
+function cleanup_menu() {
+  # Sicherstellen, dass wichtige Variablen vorhanden sind
+  COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
+  LVM_VOLUME="${LVM_VOLUME:-/dev/vg_ai/lv_ai}"
+
+  PS3="Bitte Bereinigungsoption wählen: "
+  options=(
+    "SCRIPT_DIR löschen (vollständig)"
+    "PROJECT_DIR löschen (Modelle, Daten etc.)"
+    "LVM-Volume löschen"
+    "Nur Docker-Container löschen"
+    "Alles außer Volumes löschen (Models & Daten bleiben)"
+    "Zurück"
+  )
+
+  select opt in "${options[@]}"; do
+    case $REPLY in
+      1)
+        read -rp "SCRIPT_DIR '$SCRIPT_DIR' wirklich löschen? (y/N): " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+        rm -rf "$SCRIPT_DIR"
+        echo "SCRIPT_DIR gelöscht."
+        break
+        ;;
+      2)
+        read -rp "PROJECT_DIR '$PROJECT_DIR' wirklich löschen? (y/N): " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+        rm -rf "$PROJECT_DIR"
+        echo "PROJECT_DIR gelöscht."
+        break
+        ;;
+      3)
+        read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+        lvremove -f "$LVM_VOLUME"
+        echo "LVM-Volume gelöscht."
+        break
+        ;;
+      4)
+        read -rp "Alle Docker-Container stoppen und löschen (Modelle bleiben)? (y/N): " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+        docker compose -f "$COMPOSE_FILE" down
+        echo "Docker-Container gestoppt und gelöscht."
+        break
+        ;;
+      5)
+        read -rp "Alle Nicht-Volume-Daten in '$PROJECT_DIR' löschen? (y/N): " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
+
+        keep_paths=(
+          "$PROJECT_DIR/data"
+          "$PROJECT_DIR/volumes"
+          "$PROJECT_DIR/models"
+        )
+
+        echo "Lösche alle Dateien in $PROJECT_DIR außer Volumes..."
+        shopt -s dotglob
+        for item in "$PROJECT_DIR"/*; do
+          skip=false
+          for keep in "${keep_paths[@]}"; do
+            [[ "$item" == "$keep" ]] && skip=true
+          done
+          $skip || rm -rf "$item"
+        done
+        shopt -u dotglob
+
+        echo "Nicht-Volume-Daten gelöscht."
+        break
+        ;;
+      6)
+        echo "Zurück zum Wartungsmenü."
+        break
+        ;;
+      *)
+        echo "Ungültige Auswahl.";;
+    esac
+  done
+}
 # Wartungsoptionen für Container und Dienste
 
 show_maintenance_menu() {
@@ -94,81 +174,4 @@ while true; do
   esac
   echo ""
 done
-function cleanup_menu() {
-  # Sicherstellen, dass wichtige Variablen vorhanden sind
-  COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
-  LVM_VOLUME="${LVM_VOLUME:-/dev/vg_ai/lv_ai}"
 
-  PS3="Bitte Bereinigungsoption wählen: "
-  options=(
-    "SCRIPT_DIR löschen (vollständig)"
-    "PROJECT_DIR löschen (Modelle, Daten etc.)"
-    "LVM-Volume löschen"
-    "Nur Docker-Container löschen"
-    "Alles außer Volumes löschen (Models & Daten bleiben)"
-    "Zurück"
-  )
-
-  select opt in "${options[@]}"; do
-    case $REPLY in
-      1)
-        read -rp "SCRIPT_DIR '$SCRIPT_DIR' wirklich löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        rm -rf "$SCRIPT_DIR"
-        echo "SCRIPT_DIR gelöscht."
-        break
-        ;;
-      2)
-        read -rp "PROJECT_DIR '$PROJECT_DIR' wirklich löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        rm -rf "$PROJECT_DIR"
-        echo "PROJECT_DIR gelöscht."
-        break
-        ;;
-      3)
-        read -rp "LVM-Volume '$LVM_VOLUME' wirklich löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        lvremove -f "$LVM_VOLUME"
-        echo "LVM-Volume gelöscht."
-        break
-        ;;
-      4)
-        read -rp "Alle Docker-Container stoppen und löschen (Modelle bleiben)? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-        docker compose -f "$COMPOSE_FILE" down
-        echo "Docker-Container gestoppt und gelöscht."
-        break
-        ;;
-      5)
-        read -rp "Alle Nicht-Volume-Daten in '$PROJECT_DIR' löschen? (y/N): " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Abgebrochen."; break; }
-
-        keep_paths=(
-          "$PROJECT_DIR/data"
-          "$PROJECT_DIR/volumes"
-          "$PROJECT_DIR/models"
-        )
-
-        echo "Lösche alle Dateien in $PROJECT_DIR außer Volumes..."
-        shopt -s dotglob
-        for item in "$PROJECT_DIR"/*; do
-          skip=false
-          for keep in "${keep_paths[@]}"; do
-            [[ "$item" == "$keep" ]] && skip=true
-          done
-          $skip || rm -rf "$item"
-        done
-        shopt -u dotglob
-
-        echo "Nicht-Volume-Daten gelöscht."
-        break
-        ;;
-      6)
-        echo "Zurück zum Wartungsmenü."
-        break
-        ;;
-      *)
-        echo "Ungültige Auswahl.";;
-    esac
-  done
-}
