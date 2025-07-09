@@ -47,6 +47,7 @@ cp "$SCRIPT_DIR/docker/frontend-nginx/nginx.conf" "$PROJECT_DIR/frontend-nginx/"
 # Kopiere frontend build
 mkdir -p "$PROJECT_DIR/frontend"
 cp -r "$SCRIPT_DIR/docker/frontend/." "$PROJECT_DIR/frontend/"
+cd "$PROJECT_DIR/frontend"
 [ ! -d node_modules ] && npm install
 npm run build
 echo "📦 Kopiere dist/ in Build-Image-Verzeichnis..."
