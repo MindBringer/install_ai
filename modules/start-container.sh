@@ -1,6 +1,4 @@
 #!/bin/bash
-PROJECT_DIR="$HOME/ai-stack"
-
 # Container phasenweise starten, Modelle prüfen...
 echo "[MODUL] start-container"
 ### === [7/8] Container phasenweise starten ===

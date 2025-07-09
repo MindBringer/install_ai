@@ -13,9 +13,17 @@ check_command() {
   fi
 }
 
-# === [Hauptmenü] ===
+# 🔧 zentrale Verzeichnisdefinition
+PROJECT_DIR="/$HOME/ai-stack"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+mkdir -p "$PROJECT_DIR"
+
+# 🌍 Variablen exportieren für Unterprozesse
+export PROJECT_DIR
+export SCRIPT_DIR
+
+# === [Hauptmenü] ===
 show_menu() {
   echo "🧠 AI-Stack Setup – Hauptmenü"
   echo "1) Systemsetup (Linux, Docker, Volume)"

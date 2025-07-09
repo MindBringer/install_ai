@@ -27,7 +27,6 @@ echo "🔍 Installierte Docker-Version: $docker_version"
 
 ### === 4. Docker-Images aktualisieren ===
 echo "⬇️ Aktualisiere Docker-Images aus docker-compose..."
-PROJECT_DIR="$HOME/ai-stack"
 cd "$PROJECT_DIR"
 
 if [ -f docker-compose.yml ]; then

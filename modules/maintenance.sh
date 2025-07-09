@@ -1,8 +1,6 @@
 #!/bin/bash
 # Wartungsoptionen für Container und Dienste
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 show_maintenance_menu() {
   echo "🔧 Wartungstools:"
   echo "1) Container stoppen und entfernen"
@@ -98,8 +96,6 @@ while true; do
 done
 function cleanup_menu() {
   # Sicherstellen, dass wichtige Variablen vorhanden sind
-  PROJECT_DIR="${PROJECT_DIR:-/opt/ai-project}"
-  SCRIPT_DIR="${SCRIPT_DIR:-/opt/install_ai}"
   COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_DIR/docker-compose.yml}"
   LVM_VOLUME="${LVM_VOLUME:-/dev/vg_ai/lv_ai}"
 

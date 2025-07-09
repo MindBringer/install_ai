@@ -3,10 +3,7 @@
 echo "[MODUL] setup-projectdir"
 ### === [3/8] Verzeichnisse & Dateien ===
 echo "[3/8] 📁 Projektverzeichnis vorbereiten..."
-PROJECT_DIR="$HOME/ai-stack"
 mkdir -p "$PROJECT_DIR/keycloak"
-MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT_DIR="$(dirname "$MODULE_DIR")"
 cd "$PROJECT_DIR"
 
 if [ ! -f .env ]; then
