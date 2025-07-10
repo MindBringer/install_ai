@@ -14,7 +14,7 @@ check_command() {
 }
 
 # 🔧 zentrale Verzeichnisdefinition
-PROJECT_DIR="/$HOME/ai-stack"
+PROJECT_DIR="~/$HOME/ai-stack"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 mkdir -p "$PROJECT_DIR"

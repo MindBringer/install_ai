@@ -22,6 +22,7 @@ if command -v apt &>/dev/null; then
 fi
 
 # Projektverzeichnis löschen
+PROJECT_DIR="~/home/jan/ai-stack"
 echo "🗑️  Entferne Projektverzeichnis: $PROJECT_DIR"
 rm -rf "$PROJECT_DIR"
 
@@ -35,6 +36,7 @@ if [ -n "$DOCKER_LV" ]; then
 fi
 
 # Installationsverzeichnis löschen
+SCRIPT_DIR="~/home/jan/install_ai"
 echo "🗑️  Entferne Installationsverzeichnis: $SCRIPT_DIR"
 rm -rf "$SCRIPT_DIR"
 
