@@ -32,6 +32,7 @@ show_menu() {
   echo "4) Wartung & Tools"
   echo "5) Komplettinstallation (alles)"
   echo "6) Update (System, Tools, Container)"
+  echo "7) Komplett-Deinstallation (hart)"
   echo "q) Beenden"
   echo -n "> Auswahl: "
 }
@@ -60,6 +61,9 @@ while true; do
       ;;
     6)
       bash "$SCRIPT_DIR/modules/update.sh"
+      ;;
+    7)
+      bash "$SCRIPT_DIR/modules/uninstall.sh"
       ;;
     q|Q)
       echo "👋 Beende Setup."
